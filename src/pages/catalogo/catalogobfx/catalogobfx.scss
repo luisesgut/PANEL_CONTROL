@@ -1,7 +1,7 @@
 html, body, #root {
     height: 100%;
     margin: 0;
-    overflow: hidden; // Consider if you want to keep overflow hidden globally
+    overflow: hidden; 
 }
 
 .catalogo-bfx {
@@ -19,56 +19,52 @@ html, body, #root {
         position: absolute;
         top: 16px;
         left: 16px;
-        z-index: 10; /// Ensure the button is above other content
+        z-index: 10;
     }
 
     .title {
-        margin-top: 16px; // Adjust top margin to provide spacing
-        padding-left: 60px; // Increase left padding to push the text further from the back button
-        text-align: center; // Align text to the left to utilize the padding effectively
-        width: 100%; // Add padding to avoid overlap with back button
+        margin-top: 16px;
+        padding-left: 60px;
+        text-align: center;
+        width: 100%;
     }
 
     .MuiDataGrid-root {
-        width: 100%; // Set the DataGrid width to 100% of its parent container
-        height: 600px; // Set a fixed height or adjust as necessary
-        overflow-x: auto; // Enable horizontal scrolling
-        overflow-y: auto; // Enable vertical scrolling
-        margin: 20px 0; // Add some vertical margin
+        width: 100%;
+        height: 600px;
+        overflow-x: auto;
+        overflow-y: auto;
+        margin: 20px 0;
     }
   
     .data-grid-container {
         width: 100%;
     }
 
-    .bfx-modal-content,
-    .printer-modal-content {
+    .bfx-modal-content {
         width: 90%;
         max-width: 1000px;
         margin: 20px auto;
         padding: 20px;
         position: relative;
-        overflow-y: auto; // Allows vertical scrolling if content is too long
+        overflow-y: auto;
     }
 
-    .bfx-modal-header,
-    .printer-modal-header {
+    .bfx-modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
     }
 
-    .bfx-modal-body,
-    .printer-modal-body {
+    .bfx-modal-body {
         display: grid;
-        grid-template-columns: 1fr 1fr; // Two columns
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
         margin-bottom: 20px;
     }
 
-    .bfx-modal-body .row,
-    .printer-modal-body .row {
+    .bfx-modal-body .row {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -76,8 +72,7 @@ html, body, #root {
         border: 1px solid #ccc;
     }
 
-    .bfx-modal-footer,
-    .printer-modal-footer {
+    .bfx-modal-footer {
         display: flex;
         justify-content: center;
     }
@@ -94,10 +89,10 @@ html, body, #root {
 
 @media (max-width: 600px) {
     .title {
-        font-size: 16px; // Smaller font size for smaller screens
-        padding-left: 30px; // Less padding for smaller screens
+        font-size: 16px;
+        padding-left: 30px;
     }
     .back-button {
-        top: 10px; // Adjust position to fit smaller screens
+        top: 10px;
     }
 }

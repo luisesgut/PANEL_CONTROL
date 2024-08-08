@@ -171,7 +171,7 @@ const CatalogoVaso: React.FC = () => {
           },
         };
 
-        axios.post(`http://172.16.10.31/api/Vaso/PostPrintVaso?ip=${selectedPrinter.ip}`, postData)
+        axios.post(`http://172.16.10.31/api/Vaso/PrintVasoLabel?ip=${selectedPrinter.ip}`, postData)
           .then(response => {
             console.log('Impresión iniciada:', response.data);
             Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');

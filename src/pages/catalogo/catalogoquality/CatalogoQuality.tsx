@@ -153,7 +153,7 @@ const CatalogoQuality: React.FC = () => {
           },
         };
 
-        axios.post(`http://172.16.10.31/Printer/QualityPrinterIP?ip=${selectedPrinter.ip}`, postData)
+        axios.post(`http://172.16.10.31/Printer/PrintQualityLabel?ip=${selectedPrinter.ip}`, postData)
           .then(response => {
             console.log('Impresión iniciada:', response.data);
             Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');

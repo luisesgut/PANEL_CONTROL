@@ -37,7 +37,6 @@ import ConsultaVaso from './pages/consultas/consultasvaso/ConsultaVaso';
 const Entradas = () => <div>Entradas</div>;
 const Salidas = () => <div>Salidas</div>;
 const Ubicacion = () => <div>Ubicación</div>;
-const Consultas = () => <div>Consultas</div>;
 const Handheld = () => <div>Handheld</div>;
 const Antenas = () => <div>Antenas</div>;
 

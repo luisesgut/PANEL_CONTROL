@@ -5,6 +5,7 @@ import { DataGrid, GridToolbar, GridRowsProp, GridColDef } from '@mui/x-data-gri
 import { IconButton, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from 'sweetalert2';
 import './catalogodestiny.scss';
 
@@ -87,37 +88,42 @@ const CatalogoDestiny: React.FC = () => {
       })
       .catch(error => console.error('Error fetching data:', error));
   }, []);
- 
-  const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 100 },
-    { field: 'prodEtiquetaRFIDId', headerName: 'RFID ID', width: 120 },
-    { field: 'shippingUnits', headerName: 'Shipping Units', width: 130 },
-    { field: 'uom', headerName: 'UOM', width: 100 },
-    { field: 'inventoryLot', headerName: 'Inventory Lot', width: 150 },
-    { field: 'individualUnits', headerName: 'Individual Units', width: 130 },
-    { field: 'palletId', headerName: 'Pallet ID', width: 130 },
-    { field: 'customerPo', headerName: 'Customer PO', width: 130 },
-    { field: 'totalUnits', headerName: 'Total Units', width: 120 },
-    { field: 'productDescription', headerName: 'Product Description', width: 200 },
-    { field: 'itemNumber', headerName: 'Item Number', width: 120 },
-    {
-      field: 'acciones',
-      headerName: 'Acciones',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      renderCell: (params) => (
-        <>
-          <IconButton onClick={() => handlePrintClick(params.row)}>
-            <PrintIcon />
-          </IconButton>
-        </>
-      ),
-    }
-  ];
-  
+
   const handlePrintClick = (row: RowData) => {
     showPrinterSelection(row);
+  };
+
+  const handleDeleteClick = (row: RowData) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Seguro que quieres eliminar la trazabilidad: ${row.trazabilidad}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminarlo'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://172.16.10.31/api/LabelDestiny/${row.trazabilidad}`)
+          .then(response => {
+            Swal.fire(
+              'Eliminado!',
+              'La etiqueta ha sido eliminada.',
+              'success'
+            );
+            // Remueve la fila eliminada del estado
+            setRows(rows.filter(r => r.trazabilidad !== row.trazabilidad));
+          })
+          .catch(error => {
+            Swal.fire(
+              'Error!',
+              'Hubo un problema al eliminar la etiqueta.',
+              'error'
+            );
+            console.error('Error al eliminar la etiqueta:', error);
+          });
+      }
+    });
   };
 
   const showPrinterSelection = (row: RowData) => {
@@ -171,7 +177,7 @@ const CatalogoDestiny: React.FC = () => {
           }
         };
   
-        axios.post(`http://172.16.10.31/Printer/DestinyPrinterIP?ip=${selectedPrinter.ip}`, postData)
+        axios.post(`http://172.16.10.31/Printer/PrintDestinyLabel?ip=${selectedPrinter.ip}`, postData)
           .then(response => {
             console.log('Impresión iniciada:', response.data);
             Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');
@@ -183,6 +189,37 @@ const CatalogoDestiny: React.FC = () => {
       }
     });
   };
+
+  const columns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', width: 100 },
+    { field: 'prodEtiquetaRFIDId', headerName: 'RFID ID', width: 120 },
+    { field: 'shippingUnits', headerName: 'Shipping Units', width: 130 },
+    { field: 'uom', headerName: 'UOM', width: 100 },
+    { field: 'inventoryLot', headerName: 'Inventory Lot', width: 150 },
+    { field: 'individualUnits', headerName: 'Individual Units', width: 130 },
+    { field: 'palletId', headerName: 'Pallet ID', width: 130 },
+    { field: 'customerPo', headerName: 'Customer PO', width: 130 },
+    { field: 'totalUnits', headerName: 'Total Units', width: 120 },
+    { field: 'productDescription', headerName: 'Product Description', width: 200 },
+    { field: 'itemNumber', headerName: 'Item Number', width: 120 },
+    {
+      field: 'acciones',
+      headerName: 'Acciones',
+      sortable: false,
+      filterable: false,
+      width: 150,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={() => handlePrintClick(params.row)}>
+            <PrintIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDeleteClick(params.row)}>
+            <DeleteIcon />
+          </IconButton>
+        </>
+      ),
+    }
+  ];
 
   return (
     <div className='catalogo-destiny'>

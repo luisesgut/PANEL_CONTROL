@@ -7,6 +7,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import ArticleIcon from '@mui/icons-material/Article';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
 import { DataGrid, GridToolbar, GridRowsProp, GridColDef } from '@mui/x-data-grid';
 import Swal from 'sweetalert2';
 import './catalogobfx.scss';
@@ -51,12 +52,13 @@ const getClaveUnidad = (uom: string | null): string => {
   }
 };
 
-
 const CatalogoBFX: React.FC = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
+  const [editData, setEditData] = useState({ pesoTarima: 0, pesoBruto: 0, pesoNeto: 0, piezas: 0 });
   const [printers, setPrinters] = useState<Printer[]>([
     { id: 1, name: 'Impresora 1', ip: '172.16.20.56' },
     { id: 2, name: 'Impresora 2', ip: '172.16.20.57' },
@@ -120,7 +122,7 @@ const CatalogoBFX: React.FC = () => {
           fecha: selectedRow.fecha
         };
 
-        axios.post(`http://172.16.10.31/Printer/BfxPrinterIP?ip=${selectedPrinter.ip}`, postData)
+        axios.post(`http://172.16.10.31/Printer/PrintBfxLabel?ip=${selectedPrinter.ip}`, postData)
           .then(response => {
             console.log('Impresión iniciada:', response.data);
             Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');
@@ -132,6 +134,7 @@ const CatalogoBFX: React.FC = () => {
       }
     });
   };
+
   const handleDeleteClick = (row: RowData) => {
     Swal.fire({
       title: '¿Estás seguro?',
@@ -150,7 +153,6 @@ const CatalogoBFX: React.FC = () => {
               'La etiqueta ha sido eliminada.',
               'success'
             );
-            // Remueve la fila eliminada del estado
             setRows(rows.filter(r => r.trazabilidad !== row.trazabilidad));
           })
           .catch(error => {
@@ -164,7 +166,7 @@ const CatalogoBFX: React.FC = () => {
       }
     });
   };
-  
+
   const formatDate = (dateTime: string): string => {
     const date = new Date(dateTime);
     const day = date.getDate().toString().padStart(2, '0');
@@ -172,7 +174,6 @@ const CatalogoBFX: React.FC = () => {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
-  
 
   const handleCloseModal = () => {
     setOpenModal(false);  
@@ -190,24 +191,24 @@ const CatalogoBFX: React.FC = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: 'letter'  // Puedes ajustar el tamaño de página según necesites
+      format: 'letter'
     });
   
     const splitText = (text: string, x: number, y: number, fontSize: number, maxWidth: number): number => {
       doc.setFontSize(fontSize);
-      const lines: string[] = doc.splitTextToSize(text, maxWidth); // Divide el texto para que se ajuste al ancho máximo
+      const lines: string[] = doc.splitTextToSize(text, maxWidth);
       lines.forEach((line: string) => {
         doc.text(line, x, y);
-        y += fontSize * 0.4; // Aumentar 'y' para la siguiente línea basada en el tamaño de la fuente
+        y += fontSize * 0.4;
       });
-      return y; // Retorna la nueva posición 'y' después de las líneas
+      return y;
     };
   
     doc.setFontSize(150);
     doc.text(`${claveProducto}`, 25, 45);
   
-    let currentY = 80; // Inicio de la posición Y para 'Nombre del Producto'
-    currentY = splitText(nombreProducto, 10, currentY, 45, 260); // Tamaño de fuente 60 y ancho máximo de 260mm
+    let currentY = 80;
+    currentY = splitText(nombreProducto, 10, currentY, 45, 260);
   
     doc.setFontSize(40);
     doc.text(`LOTE:${orden}`, 20, 161);
@@ -228,7 +229,87 @@ const CatalogoBFX: React.FC = () => {
     window.open(doc.output('bloburl'), '_blank');
   };
 
-  
+  const handleEditClick = (row: RowData) => {
+    setSelectedRow(row);
+    setEditData({
+      pesoTarima: row.pesoTarima,
+      pesoBruto: row.pesoBruto,
+      pesoNeto: row.pesoNeto,
+      piezas: row.piezas
+    });
+    setOpenEditModal(true);
+  };
+
+  const handleEditSubmit = () => {
+    // Validaciones de pesos
+    if (editData.pesoBruto !== undefined && editData.pesoNeto !== undefined) {
+      if (editData.pesoBruto < editData.pesoNeto) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Validación de Pesos',
+          text: 'El peso bruto no puede ser menor que el peso neto.',
+        });
+        return;
+      }
+
+      if (editData.pesoNeto > editData.pesoBruto) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Validación de Pesos',
+          text: 'El peso neto no puede ser mayor que el peso bruto.',
+        });
+        return;
+      }
+
+      if (editData.pesoBruto === editData.pesoNeto) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Validación de Pesos Idénticos',
+          text: 'El peso bruto y el peso neto no deben ser iguales.',
+        });
+        return;
+      }
+    }
+
+    // Confirmar cambios con SweetAlert
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Seguro que quieres confirmar los cambios?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, confirmar cambios'
+    }).then((result) => {
+      if (result.isConfirmed && selectedRow) {
+        // Procede a enviar la solicitud de edición
+        axios.put(`http://172.16.10.31/api/RfidLabel/${selectedRow.trazabilidad}`, editData)
+          .then(response => {
+            Swal.fire(
+              'Actualizado!',
+              'La etiqueta ha sido actualizada.',
+              'success'
+            );
+            // Actualiza los datos de la fila en la tabla
+            setRows(rows.map(r => (r.trazabilidad === selectedRow.trazabilidad ? { ...r, ...editData } : r)));
+            setOpenEditModal(false);
+          })
+          .catch(error => {
+            Swal.fire(
+              'Error!',
+              'Hubo un problema al actualizar la etiqueta.',
+              'error'
+            );
+            console.error('Error al actualizar la etiqueta:', error);
+          });
+      }
+    });
+  };
+
+  const handleCloseEditModal = () => {
+    setOpenEditModal(false);
+  };
+
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 100 },
     { field: 'area', headerName: 'Área', width: 150 },
@@ -263,6 +344,9 @@ const CatalogoBFX: React.FC = () => {
           <IconButton onClick={() => handleGeneratePDFClick(params.row)}>
             <ArticleIcon />
           </IconButton>
+          <IconButton onClick={() => handleEditClick(params.row)}>
+            <EditIcon />
+          </IconButton>
           <IconButton onClick={() => handleDeleteClick(params.row)}>
             <DeleteIcon />
           </IconButton>
@@ -270,8 +354,6 @@ const CatalogoBFX: React.FC = () => {
       ),
     },
   ];
-  
-  
 
   return (
     <div className='catalogo-bfx'>
@@ -358,6 +440,56 @@ const CatalogoBFX: React.FC = () => {
                     </div>
                 </Box>
             )}
+        </Paper>
+      </Modal>
+
+      <Modal open={openEditModal} onClose={handleCloseEditModal} style={{ zIndex: 1050 }}>
+        <Paper className="bfx-modal-content">
+          <Box className="bfx-modal-header">
+            <Typography variant="h6">Editar Datos de la Etiqueta</Typography>
+            <IconButton onClick={handleCloseEditModal}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Box className="bfx-modal-body">
+            <TextField
+              label="Peso Tarima"
+              type="number"
+              value={editData.pesoTarima}
+              onChange={(e) => setEditData({ ...editData, pesoTarima: parseFloat(e.target.value) })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Peso Bruto"
+              type="number"
+              value={editData.pesoBruto}
+              onChange={(e) => setEditData({ ...editData, pesoBruto: parseFloat(e.target.value) })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Peso Neto"
+              type="number"
+              value={editData.pesoNeto}
+              onChange={(e) => setEditData({ ...editData, pesoNeto: parseFloat(e.target.value) })}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Piezas"
+              type="number"
+              value={editData.piezas}
+              onChange={(e) => setEditData({ ...editData, piezas: parseFloat(e.target.value) })}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+          <Box className="bfx-modal-footer">
+            <Button variant="contained" color="primary" onClick={handleEditSubmit}>
+              Confirmar Cambios
+            </Button>
+          </Box>
         </Paper>
       </Modal>
     </div>
