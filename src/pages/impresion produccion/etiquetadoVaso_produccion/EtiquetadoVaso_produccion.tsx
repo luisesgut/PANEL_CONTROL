@@ -9,6 +9,7 @@ import EtiquetaImpresion from '../../../assets/EiquetBFX.jpg';
 import { Autocomplete } from '@mui/material';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
+import { styled } from '@mui/material/styles';
 
 interface Area {
   id: number;
@@ -193,7 +194,31 @@ useEffect(() => {
     setCurrentDate(formattedDate);*/}
     generateTrazabilidad(); // Generar trazabilidad y RFID antes de abrir el modal
     setOpenModal(true);
+  
   };
+
+  const resetValores = () => {
+    setSelectedArea(undefined);
+    setSelectedTurno(undefined);
+    setSelectedMaquina(undefined);
+    setSelectedOrden(undefined);
+    setPesoBruto(undefined);
+    setPesoNeto(undefined);
+    setPesoTarima(undefined);
+    setPiezas(undefined);
+    setSelectedOperador(undefined);
+    setTrazabilidad('');
+    setRfid('');
+    setUnidad('Piezas');
+    setDate('');
+    setCantidadVasoPorCaja('');
+    setCantidadCajas('');
+    setTotalPiezas('');
+    setClaveUnidad('Unidad');
+    setFilteredProductos('');
+    setSelectedPrinter(null);
+    setResetKey(prevKey => prevKey + 1);  // Incrementa la key para forzar rerender
+  };  
 
   const resetForm = () => {
     setCantidadVasoPorCaja('');
@@ -204,6 +229,14 @@ useEffect(() => {
 
     setResetKey(prevKey => prevKey + 1);  // Incrementa la key para forzar rerender
   };
+
+  const RedButton = styled(Button)({
+    backgroundColor: 'red',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: 'darkred',
+    },
+  });
 
   const generatePDF = (data: EtiquetaData) => { //MODIFICAR ROTULO
     const { claveProducto, nombreProducto, pesoBruto, orden, fecha } = data;
@@ -250,8 +283,11 @@ useEffect(() => {
   const handleCloseModal = () => setOpenModal(false);
 
   const handleGenerateEtiqueta = () => {
-    handleOpenModal();
-  };
+    setTimeout(() => {
+        handleOpenModal();
+    }, 4000); // 15000 milisegundos = 15 segundos
+};
+
 
   const generateTrazabilidad = async () => {
     const base = '2';
@@ -385,17 +421,17 @@ useEffect(() => {
 
 
   return (
-    <div className='catalogo-bfx'>
-      <Box className='top-container-bfx'>
+    <div className='catalogo-vaso'>
+      <Box className='top-container-vaso'>
         <IconButton onClick={() => navigate('/ModulosTarima')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
       </Box>
-      <Box className='impresion-card-bfx'>
+      <Box className='impresion-card-vaso'>
         <Typography variant="h5" sx={{ textAlign: 'center', mb: 2 }}>
           GENERACION ETIQUETA FORMATO IMPRESION VASO
         </Typography>
-        <Box className='impresion-form-bfx'>
+        <Box className='impresion-form-vaso'>
         <TextField
         type="date"
         value={date}
@@ -491,21 +527,24 @@ useEffect(() => {
               variant="outlined"
             />
         </Box>
-        <Box className='impresion-button-bfx'>
+        <Box className='impresion-button-vaso'>
+          <RedButton variant="contained" onClick={resetValores}>
+            RESETEAR VALORES
+          </RedButton>
           <Button variant="contained" className="generate-button" onClick={handleGenerateEtiqueta}>
             VISTA PREVIA
           </Button>
         </Box>
       </Box>
       <Modal open={openModal} onClose={handleCloseModal} style={{ zIndex: 1050 }}>
-        <Paper className="bfx-modal-content">
-          <Box className="bfx-modal-header">
+        <Paper className="vaso-modal-content">
+          <Box className="vaso-modal-header">
             <Typography variant="h6">Vista Previa de la Etiqueta</Typography>
             <IconButton onClick={handleCloseModal}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Box className="bfx-modal-body">
+          <Box className="vaso-modal-body">
           <div className="row">
               <img src={EtiquetaImpresion} alt="" className="img-etiquetado" />
             </div>
@@ -555,7 +594,7 @@ useEffect(() => {
               <Typography><strong>OT Y/O LOTE:</strong> {ordenes.find(o => o.id === selectedOrden)?.orden}</Typography>
             </div>
           </Box>
-          <Box className="bfx-modal-footer">
+          <Box className="vaso-modal-footer">
           <Autocomplete
               value={selectedPrinter}
               onChange={(event, newValue: Printer | null) => {

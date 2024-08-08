@@ -4,9 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { DataGrid, GridToolbar, GridRowsProp, GridColDef } from '@mui/x-data-grid';
 import { IconButton, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PrintIcon from '@mui/icons-material/Print';
-import Swal from 'sweetalert2';
-import './catalogodestiny.scss';
+import './consultasdestiny.scss';
 
 interface RowData {
   id: number;
@@ -37,19 +35,7 @@ interface RowData {
   itemNumber: string;
 }
 
-interface Printer {
-  id: number;
-  name: string;
-  ip: string;
-}
-
-const printers: Printer[] = [
-  { id: 1, name: 'Impresora 1', ip: '172.16.20.56' },
-  { id: 2, name: 'Impresora 2', ip: '172.16.20.57' },
-  { id: 3, name: 'Impresora 3', ip: '172.16.20.58' }
-];
-
-const CatalogoDestiny: React.FC = () => {
+const ConsultaDestiny: React.FC = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<GridRowsProp>([]);
 
@@ -100,97 +86,16 @@ const CatalogoDestiny: React.FC = () => {
     { field: 'totalUnits', headerName: 'Total Units', width: 120 },
     { field: 'productDescription', headerName: 'Product Description', width: 200 },
     { field: 'itemNumber', headerName: 'Item Number', width: 120 },
-    {
-      field: 'acciones',
-      headerName: 'Acciones',
-      sortable: false,
-      filterable: false,
-      width: 150,
-      renderCell: (params) => (
-        <>
-          <IconButton onClick={() => handlePrintClick(params.row)}>
-            <PrintIcon />
-          </IconButton>
-        </>
-      ),
-    }
   ];
-  
-  const handlePrintClick = (row: RowData) => {
-    showPrinterSelection(row);
-  };
 
-  const showPrinterSelection = (row: RowData) => {
-    Swal.fire({
-      title: 'Seleccionar Impresora',
-      input: 'select',
-      inputOptions: printers.reduce((options, printer) => {
-        options[printer.id] = printer.name;
-        return options;
-      }, {} as Record<number, string>),
-      inputPlaceholder: 'Selecciona una impresora',
-      showCancelButton: true,
-      confirmButtonText: 'Confirmar',
-      cancelButtonText: 'Cancelar',
-      preConfirm: (selectedPrinterId) => {
-        const selectedPrinter = printers.find(printer => printer.id === Number(selectedPrinterId));
-        if (!selectedPrinter) {
-          Swal.showValidationMessage('Por favor, selecciona una impresora');
-        }
-        return selectedPrinter;
-      }
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        const selectedPrinter = result.value as Printer;
-        const postData = {
-          area: row.area,
-          claveProducto: row.claveProducto,
-          nombreProducto: row.nombreProducto,
-          claveOperador: row.claveOperador,
-          operador: row.operador,
-          turno: row.turno,
-          pesoTarima: row.pesoTarima,
-          pesoBruto: row.pesoBruto,
-          pesoNeto: row.pesoNeto,
-          piezas: row.piezas,
-          trazabilidad: row.trazabilidad,
-          orden: row.orden.toString(),
-          rfid: row.rfid,
-          status: row.status,
-          fecha: row.fecha,
-          postExtraDestinyDto: {
-            shippingUnits: row.shippingUnits,
-            uom: row.uom,
-            inventoryLot: row.inventoryLot,
-            individualUnits: row.individualUnits,
-            palletId: row.palletId,
-            customerPo: row.customerPo,
-            totalUnits: row.totalUnits,
-            productDescription: row.productDescription,
-            itemNumber: row.itemNumber
-          }
-        };
-  
-        axios.post(`http://172.16.10.31/Printer/DestinyPrinterIP?ip=${selectedPrinter.ip}`, postData)
-          .then(response => {
-            console.log('Impresión iniciada:', response.data);
-            Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');
-          })
-          .catch(error => {
-            console.error('Error al imprimir:', error);
-            Swal.fire('Error', 'Hubo un error al iniciar la impresión', 'error');
-          });
-      }
-    });
-  };
 
   return (
-    <div className='catalogo-destiny'>
-      <IconButton onClick={() => navigate('/catalogos')} className="back-button">
+    <div className='consulta-destiny'>
+      <IconButton onClick={() => navigate('/consultas')} className="back-button">
         <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
       </IconButton>
       <Typography variant="h4" className="title">
-        CATALOGO ETIQUETADO DESTINY
+      CONSULTA PT DESTINY
       </Typography>
       <div className="data-grid-container">
         <DataGrid
@@ -217,4 +122,4 @@ const CatalogoDestiny: React.FC = () => {
   );
 };
 
-export default CatalogoDestiny;
+export default ConsultaDestiny;

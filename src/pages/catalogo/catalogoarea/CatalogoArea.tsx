@@ -61,26 +61,27 @@ const CatalogoArea: React.FC = () => {
           Catálogo de Áreas
         </Typography>
       </Box>
-      <Box sx={{ width: '100%', textAlign: 'center', mb: 4 }}>
+      <div className="data-grid-container">
         <DataGrid
           columns={columns}
-          rows={rows}
-          disableDensitySelector
           disableColumnFilter
           disableColumnSelector
+          disableDensitySelector
           slots={{ toolbar: GridToolbar }}
-          onColumnVisibilityModelChange={(newModel) =>
-            setColumnVisibilityModel(newModel)
-          }
+          slotProps={{ toolbar: { showQuickFilter: true } }}
+          rows={rows}
           initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 10,
+              pagination: {
+                paginationModel: {
+                  pageSize: 25,
+                },
               },
-            },
           }}
+          pageSizeOptions={[5,10,25,50,100]}
+          pagination
+          className="MuiDataGrid-root"
         />
-      </Box>
+      </div>
     </div>
   );
 };

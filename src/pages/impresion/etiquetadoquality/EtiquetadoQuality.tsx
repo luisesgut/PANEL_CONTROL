@@ -104,28 +104,6 @@ const EtiquetadoQuality: React.FC = () => {
     { name: "Impresora 3", ip: "172.16.20.58" }
   ];
 
-  const handlePesoBrutoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const newPesoBruto = parseFloat(event.target.value);
-    // Verifica que el nuevo peso bruto no sea menor que el peso neto existente.
-    if (!isNaN(newPesoBruto) && (pesoNeto === undefined || newPesoBruto >= pesoNeto)) {
-      setPesoBruto(newPesoBruto);
-    } else {
-      // Opcional: Manejo de errores o alertas aquí.
-      console.error('El peso bruto no puede ser menor que el peso neto.');
-    }
-  };
-
-  const handlePesoNetoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newPesoNeto = parseFloat(event.target.value);
-    // Verifica que el nuevo peso neto no sea mayor que el peso bruto existente.
-    if (!isNaN(newPesoNeto) && (pesoBruto === undefined || newPesoNeto <= pesoBruto)) {
-      setPesoNeto(newPesoNeto);
-    } else {
-      // Opcional: Manejo de errores o alertas aquí.
-      console.error('El peso neto no puede ser mayor que el peso bruto.');
-    }
-  };
-
   const handlePesoTarimaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(event.target.value);
     if (!isNaN(value) && value >= 0 && value <= 52) {
@@ -229,8 +207,32 @@ const EtiquetadoQuality: React.FC = () => {
   const handleCloseModal = () => setOpenModal(false);
 
   const handleGenerateEtiqueta = () => {
+    // Solo verificamos que el peso bruto no sea menor que el peso neto y viceversa
+    if (pesoBruto !== undefined && pesoNeto !== undefined) {
+        if (pesoBruto < pesoNeto) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validación de Pesos',
+                text: 'El peso bruto no puede ser menor que el peso neto.',
+            });
+            return; // Detiene la ejecución si la validación falla
+        }
+
+        if (pesoNeto > pesoBruto) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validación de Pesos',
+                text: 'El peso neto no puede ser mayor que el peso bruto.',
+            });
+            return; // Detiene la ejecución si la validación falla
+        }
+    }
+
+    // Si todas las validaciones pasan, entonces procede a generar la etiqueta
     handleOpenModal();
-  };
+};
+
+
 
   const generateTrazabilidad = async () => {
     const base = '2';
@@ -353,13 +355,13 @@ const EtiquetadoQuality: React.FC = () => {
 
   const handleConfirmEtiqueta = () => {
     if (!selectedPrinter) {
-      Swal.fire({
-          icon: 'warning',
-          title: 'Impresora no seleccionada',
-          text: 'Por favor, seleccione una impresora.',
-      });
-      return;
-  }
+        Swal.fire({
+            icon: 'warning',
+            title: 'Impresora no seleccionada',
+            text: 'Por favor, seleccione una impresora.',
+        });
+        return;
+    }
 
     const url = `http://172.16.10.31/Printer/QualityPrinterIP?ip=${selectedPrinter.ip}`;
     const area = areas.find(a => a.id === selectedArea)?.area;
@@ -368,72 +370,82 @@ const EtiquetadoQuality: React.FC = () => {
     const producto = filteredProductos;
     const turno = turnos.find(t => t.id === selectedTurno)?.turno;
     const operadorSeleccionado = operadores.find(o => o.id === selectedOperador);
-  
+
     const data = {
-      area: area || '',
-      claveProducto: producto.split(' ')[0],
-      nombreProducto: producto.split(' ').slice(1).join(' '),
-      claveOperador: operadorSeleccionado ? operadorSeleccionado.numNomina : '',
-      operador: operadorSeleccionado ? `${operadorSeleccionado.numNomina} - ${operadorSeleccionado.nombreCompleto}` : '',
-      turno: turno || '',
-      pesoTarima: pesoTarima !== undefined ? pesoTarima : '',
-      pesoBruto: pesoBruto || 0,
-      pesoNeto: pesoNeto || 0,
-      piezas: piezas || 0,
-      trazabilidad: trazabilidad,
-      orden: orden || "",
-      rfid: rfid,
-      status: 1,
-      uom: unidad,
-      fecha: date,
-      postExtraQuality: {
-        individualUnits: qtyUOM || 0,
-        itemDescription: item, // Tomado directamente del estado
-        itemNumber: qpsItemNumber,
-        totalUnits: totalQtyPallet || 0,
-        shippingUnits: piezas || 0,
-        inventoryLot: lot.toString(),
-        customer: customer,
-        traceability: traceabilityCode
-      }
+        area: area || '',
+        claveProducto: producto.split(' ')[0],
+        nombreProducto: producto.split(' ').slice(1).join(' '),
+        claveOperador: operadorSeleccionado ? operadorSeleccionado.numNomina : '',
+        operador: operadorSeleccionado ? `${operadorSeleccionado.numNomina} - ${operadorSeleccionado.nombreCompleto}` : '',
+        turno: turno || '',
+        pesoTarima: pesoTarima !== undefined ? pesoTarima : '',
+        pesoBruto: pesoBruto || 0,
+        pesoNeto: pesoNeto || 0,
+        piezas: piezas || 0,
+        trazabilidad: trazabilidad,
+        orden: orden || "",
+        rfid: rfid,
+        status: 1,
+        uom: unidad,
+        fecha: date,
+        postExtraQuality: {
+            individualUnits: qtyUOM || 0,
+            itemDescription: item, // Tomado directamente del estado
+            itemNumber: qpsItemNumber,
+            totalUnits: totalQtyPallet || 0,
+            shippingUnits: piezas || 0,
+            inventoryLot: lot.toString(),
+            customer: customer,
+            traceability: traceabilityCode
+        }
     };
-    
+
+    // Validación de peso bruto y peso neto
+    if (data.pesoBruto === 0 || data.pesoNeto === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Pesos inválidos',
+            text: 'El peso bruto y el peso neto no pueden ser 0.',
+        });
+        return;
+    }
+
     const requiredFields = [
-      { name: 'Área', value: data.area },
-      { name: 'Clave de Producto', value: data.claveProducto },
-      { name: 'Nombre de Producto', value: data.nombreProducto },
-      { name: 'Clave de Operador', value: data.claveOperador },
-      { name: 'Operador', value: data.operador },
-      { name: 'Turno', value: data.turno },
-      { name: 'Peso Tarima', value: data.pesoTarima },
-      { name: 'Peso Bruto', value: data.pesoBruto },
-      { name: 'Peso Neto', value: data.pesoNeto },
-      { name: 'Piezas', value: data.piezas },
-      { name: 'Trazabilidad', value: data.trazabilidad },
-      { name: 'Orden', value: data.orden },
-      { name: 'RFID', value: data.rfid },
-      { name: 'UOM', value: data.uom },
-      { name: 'Fecha', value: data.fecha },
-      { name: 'Individual Units', value: data.postExtraQuality.individualUnits },
-      { name: 'Item Description', value: data.postExtraQuality.itemDescription },
-      { name: 'Item Number', value: data.postExtraQuality.itemNumber },
-      { name: 'Total Units', value: data.postExtraQuality.totalUnits },
-      { name: 'Shipping Units', value: data.postExtraQuality.shippingUnits },
-      { name: 'Inventory Lot', value: data.postExtraQuality.inventoryLot },
-      { name: 'Customer', value: data.postExtraQuality.customer },
-      { name: 'Traceability', value: data.postExtraQuality.traceability }
-  ];
+        { name: 'Área', value: data.area },
+        { name: 'Clave de Producto', value: data.claveProducto },
+        { name: 'Nombre de Producto', value: data.nombreProducto },
+        { name: 'Clave de Operador', value: data.claveOperador },
+        { name: 'Operador', value: data.operador },
+        { name: 'Turno', value: data.turno },
+        { name: 'Peso Tarima', value: data.pesoTarima },
+        { name: 'Peso Bruto', value: data.pesoBruto },
+        { name: 'Peso Neto', value: data.pesoNeto },
+        { name: 'Piezas', value: data.piezas },
+        { name: 'Trazabilidad', value: data.trazabilidad },
+        { name: 'Orden', value: data.orden },
+        { name: 'RFID', value: data.rfid },
+        { name: 'UOM', value: data.uom },
+        { name: 'Fecha', value: data.fecha },
+        { name: 'Individual Units', value: data.postExtraQuality.individualUnits },
+        { name: 'Item Description', value: data.postExtraQuality.itemDescription },
+        { name: 'Item Number', value: data.postExtraQuality.itemNumber },
+        { name: 'Total Units', value: data.postExtraQuality.totalUnits },
+        { name: 'Shipping Units', value: data.postExtraQuality.shippingUnits },
+        { name: 'Inventory Lot', value: data.postExtraQuality.inventoryLot },
+        { name: 'Customer', value: data.postExtraQuality.customer },
+        { name: 'Traceability', value: data.postExtraQuality.traceability }
+    ];
 
-  const emptyFields = requiredFields.filter(field => field.value === null || field.value === undefined || field.value === '');
+    const emptyFields = requiredFields.filter(field => field.value === null || field.value === undefined || field.value === '');
 
-  if (emptyFields.length > 0) {
-      Swal.fire({
-          icon: 'warning',
-          title: 'Campos incompletos',
-          text: `Por favor, complete los siguientes campos: ${emptyFields.map(field => field.name).join(', ')}.`,
-      });
-      return;
-  }
+    if (emptyFields.length > 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: `Por favor, complete los siguientes campos: ${emptyFields.map(field => field.name).join(', ')}.`,
+        });
+        return;
+    }
 
     axios.post(url, data)
         .then(response => {
@@ -454,7 +466,7 @@ const EtiquetadoQuality: React.FC = () => {
             });
             console.error('Error al generar la etiqueta:', error);
         });
-  };
+};
 
 
   return (
@@ -533,8 +545,8 @@ const EtiquetadoQuality: React.FC = () => {
               label="PESO BRUTO"
               variant="outlined"
               type="number"
-              value={pesoBruto}
-              onChange={handlePesoBrutoChange}
+              value={pesoBruto === undefined ? '' : pesoBruto}  // Asegúrate de manejar correctamente undefined
+              onChange={(event) => setPesoBruto(event.target.value === '' ? undefined : parseFloat(event.target.value))}
           />
 
           <TextField
@@ -543,8 +555,8 @@ const EtiquetadoQuality: React.FC = () => {
               label="PESO NETO"
               variant="outlined"
               type="number"
-              value={pesoNeto}
-              onChange={handlePesoNetoChange}
+              value={pesoNeto === undefined ? '' : pesoNeto}  // Asegúrate de manejar correctamente undefined
+              onChange={(event) => setPesoNeto(event.target.value === '' ? undefined : parseFloat(event.target.value))}
           />
 
           <TextField

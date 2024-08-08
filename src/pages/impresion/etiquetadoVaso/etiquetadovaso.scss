@@ -10,7 +10,7 @@ html, body, #root {
     align-items: center;
     justify-content: center; /* Alineación al inicio para cuando hay scroll */
     min-height: 100vh; /* Usa min-height en lugar de height para permitir que se expanda */
-    background-color: #ffffff;
+    background-color: #f0f4f7;
     overflow-x: hidden; /* Oculta el desbordamiento horizontal */
     overflow-y: auto; /* Permite desplazamiento vertical cuando es necesario */
     width: 100%; /* Asegura que ocupe todo el ancho disponible */
@@ -44,7 +44,7 @@ html, body, #root {
   
   .impresion-button-vaso {
     display: flex;
-    justify-content:space-between;
+    justify-content: flex-end;
     margin-top: 16px;
   }
   
@@ -103,7 +103,7 @@ html, body, #root {
     justify-content: flex-start;
     width: 100%;
     padding-left: 16px; /* Espacio desde el borde izquierdo */
-    background-color: #ffffff;
+    background-color: #f0f4f7;
     padding-top: 10px;
   }
   
@@ -125,3 +125,4 @@ html, body, #root {
       width: 95%;
     }
   }
+  

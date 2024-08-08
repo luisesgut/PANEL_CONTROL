@@ -4,7 +4,7 @@ import { Box, Button, IconButton, MenuItem, Select, TextField, Typography, Modal
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
-import '../etiquetadobfx/etiquetadobfx.scss';
+import './etiquetadovaso.scss';
 import EtiquetaImpresion from '../../../assets/EiquetBFX.jpg';
 import { Autocomplete } from '@mui/material';
 import jsPDF from 'jspdf';
@@ -401,17 +401,17 @@ useEffect(() => {
 
 
   return (
-    <div className='impresion-container-bfx'>
-      <Box className='top-container-bfx'>
+    <div className='impresion-container-vaso'>
+      <Box className='top-container-vaso'>
         <IconButton onClick={() => navigate('/modulosimpresion')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
       </Box>
-      <Box className='impresion-card-bfx'>
+      <Box className='impresion-card-vaso'>
         <Typography variant="h5" sx={{ textAlign: 'center', mb: 2 }}>
           GENERACION ETIQUETA FORMATO IMPRESION VASO
         </Typography>
-        <Box className='impresion-form-bfx'>
+        <Box className='impresion-form-vaso'>
         <TextField
         type="date"
         value={date}
@@ -524,21 +524,21 @@ useEffect(() => {
               variant="outlined"
             />
         </Box>
-        <Box className='impresion-button-bfx'>
+        <Box className='impresion-button-vaso'>
           <Button variant="contained" className="generate-button" onClick={handleGenerateEtiqueta} >
             VISTA PREVIA
           </Button>
         </Box>
       </Box>
       <Modal open={openModal} onClose={handleCloseModal} style={{ zIndex: 1050 }}>
-        <Paper className="bfx-modal-content">
-          <Box className="bfx-modal-header">
+        <Paper className="vaso-modal-content">
+          <Box className="vaso-modal-header">
             <Typography variant="h6">Vista Previa de la Etiqueta</Typography>
             <IconButton onClick={handleCloseModal}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Box className="bfx-modal-body">
+          <Box className="vaso-modal-body">
           <div className="row">
               <img src={EtiquetaImpresion} alt="" className="img-etiquetado" />
             </div>
@@ -588,7 +588,7 @@ useEffect(() => {
               <Typography><strong>OT Y/O LOTE:</strong> {ordenes.find(o => o.id === selectedOrden)?.orden}</Typography>
             </div>
           </Box>
-          <Box className="bfx-modal-footer">
+          <Box className="vaso-modal-footer">
             <Autocomplete
               value={selectedPrinter}
               onChange={(event, newValue: Printer | null) => {

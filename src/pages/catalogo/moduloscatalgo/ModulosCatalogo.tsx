@@ -14,6 +14,7 @@ const catalogModules = [
   { icon: <BusinessIcon sx={{ fontSize: 40 }} />, label: 'PRODUCTO BIOFLEX', path: '/catalogoBioflex' },
   { icon: <BusinessIcon sx={{ fontSize: 40 }} />, label: 'PRODUCTO DESTINY', path: '/catalogoDestiny' },
   { icon: <BusinessIcon sx={{ fontSize: 40 }} />, label: 'PRODUCTO QUALITY', path: '/catalogoQuality' },
+  { icon: <BusinessIcon sx={{ fontSize: 40 }} />, label: 'PRODUCTO VASO', path: '/catalogoVaso' },
   { icon: <EngineeringIcon sx={{ fontSize: 40 }} />, label: 'AREA', path: '/catalogoArea' },
   { icon: <EngineeringIcon sx={{ fontSize: 40 }} />, label: 'MAQUINA', path: '/catalogoMaquina' },
   { icon: <PeopleIcon sx={{ fontSize: 40 }} />, label: 'OPERADORES', path: '/catalogoOperadores' },

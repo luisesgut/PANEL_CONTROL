@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { IconButton, Box, Typography, Modal, Paper, Button } from '@mui/material';
+import { IconButton, Box, Typography, Modal, Paper, Button, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
+import ArticleIcon from '@mui/icons-material/Article';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
 import { DataGrid, GridToolbar, GridRowsProp, GridColDef } from '@mui/x-data-grid';
+import Swal from 'sweetalert2';
 import './catalogobfx.scss';
+import DeleteIcon from '@mui/icons-material/Delete';
+import jsPDF from 'jspdf';
 
 interface RowData {
   id: number;
@@ -28,11 +32,36 @@ interface RowData {
   status: string;
 }
 
+interface Printer {
+  id: number;
+  name: string;
+  ip: string;
+}
+
+const getClaveUnidad = (uom: string | null): string => {
+  switch (uom) {
+    case 'Millares':
+      return 'MIL';
+    case 'Piezas':
+      return 'PZAS';
+    case 'Cajas':
+      return 'XBX';
+    default:
+      return '';
+  }
+};
+
+
 const CatalogoBFX: React.FC = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
+  const [printers, setPrinters] = useState<Printer[]>([
+    { id: 1, name: 'Impresora 1', ip: '172.16.20.56' },
+    { id: 2, name: 'Impresora 2', ip: '172.16.20.57' },
+    { id: 3, name: 'Impresora 3', ip: '172.16.20.58' }
+  ]);
 
   useEffect(() => {
     axios.get('http://172.16.10.31/api/RfidLabel')
@@ -46,34 +75,102 @@ const CatalogoBFX: React.FC = () => {
   };
 
   const handlePrintClick = (row: RowData) => {
-    const postData = {
-      area: row.area,
-      claveProducto: row.claveProducto,
-      nombreProducto: row.nombreProducto,
-      claveOperador: row.operador, // Asumiendo que 'claveOperador' puede ser deducido del campo 'operador'
-      operador: row.operador,
-      turno: row.turno,
-      pesoTarima: row.pesoTarima,
-      pesoBruto: row.pesoBruto,
-      pesoNeto: row.pesoNeto,
-      piezas: row.piezas,
-      trazabilidad: row.trazabilidad,
-      orden: row.orden.toString(),
-      rfid: row.rfid,
-      status: row.status,
-      uom: row.uom, // Asegúrate de que esta propiedad está correctamente definida en tus filas
-      fecha: row.fecha // Considera si necesitas transformar el formato de la fecha para el backend
-    };
+    setSelectedRow(row);
+    showPrinterSelection();
+  };
+
+  const showPrinterSelection = () => {
+    Swal.fire({
+      title: 'Seleccionar Impresora',
+      input: 'select',
+      inputOptions: printers.reduce((options, printer) => {
+        options[printer.id] = printer.name;
+        return options;
+      }, {} as Record<number, string>),
+      inputPlaceholder: 'Selecciona una impresora',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: (selectedPrinterId) => {
+        const selectedPrinter = printers.find(printer => printer.id === Number(selectedPrinterId));
+        if (!selectedPrinter) {
+          Swal.showValidationMessage('Por favor, selecciona una impresora');
+        }
+        return selectedPrinter;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value && selectedRow) {
+        const selectedPrinter = result.value as Printer;
+        const postData = {
+          area: selectedRow.area,
+          claveProducto: selectedRow.claveProducto,
+          nombreProducto: selectedRow.nombreProducto,
+          claveOperador: selectedRow.operador,
+          operador: selectedRow.operador,
+          turno: selectedRow.turno,
+          pesoTarima: selectedRow.pesoTarima,
+          pesoBruto: selectedRow.pesoBruto,
+          pesoNeto: selectedRow.pesoNeto,
+          piezas: selectedRow.piezas,
+          trazabilidad: selectedRow.trazabilidad,
+          orden: selectedRow.orden.toString(),
+          rfid: selectedRow.rfid,
+          status: selectedRow.status,
+          uom: selectedRow.uom,
+          fecha: selectedRow.fecha
+        };
+
+        axios.post(`http://172.16.10.31/Printer/BfxPrinterIP?ip=${selectedPrinter.ip}`, postData)
+          .then(response => {
+            console.log('Impresión iniciada:', response.data);
+            Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');
+          })
+          .catch(error => {
+            console.error('Error al imprimir:', error);
+            Swal.fire('Error', 'Hubo un error al iniciar la impresión', 'error');
+          });
+      }
+    });
+  };
+  const handleDeleteClick = (row: RowData) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Seguro que quieres eliminar la trazabilidad: ${row.trazabilidad}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminarlo'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://172.16.10.31/api/RfidLabel/${row.trazabilidad}`)
+          .then(response => {
+            Swal.fire(
+              'Eliminado!',
+              'La etiqueta ha sido eliminada.',
+              'success'
+            );
+            // Remueve la fila eliminada del estado
+            setRows(rows.filter(r => r.trazabilidad !== row.trazabilidad));
+          })
+          .catch(error => {
+            Swal.fire(
+              'Error!',
+              'Hubo un problema al eliminar la etiqueta.',
+              'error'
+            );
+            console.error('Error al eliminar la etiqueta:', error);
+          });
+      }
+    });
+  };
   
-    axios.post(`http://172.16.10.31/Printer/BfxPrinterIP?ip=172.16.20.58`, postData)
-      .then(response => {
-        console.log('Impresión iniciada:', response.data);
-        // Puedes manejar la respuesta de éxito aquí, como mostrar un mensaje de éxito.
-      })
-      .catch(error => {
-        console.error('Error al imprimir:', error);
-        // Puedes manejar errores aquí, como mostrar un mensaje de error.
-      });
+  const formatDate = (dateTime: string): string => {
+    const date = new Date(dateTime);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Meses comienzan en 0
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
   
 
@@ -81,6 +178,57 @@ const CatalogoBFX: React.FC = () => {
     setOpenModal(false);  
   };
 
+  const handleGeneratePDFClick = (row: RowData) => {
+    generatePDF(row);
+  };
+
+  const generatePDF = (data: RowData) => {
+    const { claveProducto, nombreProducto, pesoBruto, orden, fecha, pesoNeto, piezas } = data;
+    const claveUnidad = getClaveUnidad(data.uom);
+    const formattedDate = formatDate(fecha);
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'letter'  // Puedes ajustar el tamaño de página según necesites
+    });
+  
+    const splitText = (text: string, x: number, y: number, fontSize: number, maxWidth: number): number => {
+      doc.setFontSize(fontSize);
+      const lines: string[] = doc.splitTextToSize(text, maxWidth); // Divide el texto para que se ajuste al ancho máximo
+      lines.forEach((line: string) => {
+        doc.text(line, x, y);
+        y += fontSize * 0.4; // Aumentar 'y' para la siguiente línea basada en el tamaño de la fuente
+      });
+      return y; // Retorna la nueva posición 'y' después de las líneas
+    };
+  
+    doc.setFontSize(150);
+    doc.text(`${claveProducto}`, 25, 45);
+  
+    let currentY = 80; // Inicio de la posición Y para 'Nombre del Producto'
+    currentY = splitText(nombreProducto, 10, currentY, 45, 260); // Tamaño de fuente 60 y ancho máximo de 260mm
+  
+    doc.setFontSize(40);
+    doc.text(`LOTE:${orden}`, 20, 161);
+    doc.text(`${formattedDate} `, 155, 161);
+  
+    doc.text(`KGM`, 80, 180);
+  
+    doc.setFontSize(80);
+    doc.text(`${pesoNeto}`, 5, 207);
+    doc.text(`${piezas} ${claveUnidad}`, 122, 207);
+  
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(5, 55, 275, 55);
+    doc.line(5, 145, 275, 145);
+    doc.line(5, 167, 275, 167);
+    doc.line(117, 167, 117, 210);
+    window.open(doc.output('bloburl'), '_blank');
+  };
+
+  
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 100 },
     { field: 'area', headerName: 'Área', width: 150 },
@@ -103,7 +251,7 @@ const CatalogoBFX: React.FC = () => {
       headerName: 'Acciones',
       sortable: false,
       filterable: false,
-      width: 150,
+      width: 250,
       renderCell: (params) => (
         <>
           <IconButton onClick={() => handlePreviewClick(params.row)}>
@@ -112,10 +260,17 @@ const CatalogoBFX: React.FC = () => {
           <IconButton onClick={() => handlePrintClick(params.row)}>
             <PrintIcon />
           </IconButton>
+          <IconButton onClick={() => handleGeneratePDFClick(params.row)}>
+            <ArticleIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDeleteClick(params.row)}>
+            <DeleteIcon />
+          </IconButton>
         </>
       ),
     },
   ];
+  
   
 
   return (
@@ -126,24 +281,27 @@ const CatalogoBFX: React.FC = () => {
       <Typography variant="h4" sx={{ textAlign: 'center', mt: 4, mb: 4 }}>
         CATALOGO ETIQUETADO BIOFLEX
       </Typography>
-      <DataGrid
-        columns={columns}
-        disableColumnFilter
-        disableColumnSelector
-        disableDensitySelector
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{ toolbar: { showQuickFilter: true } }}
-        rows={rows}
-        initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 25,
+      <div className="data-grid-container">
+        <DataGrid
+          columns={columns}
+          disableColumnFilter
+          disableColumnSelector
+          disableDensitySelector
+          slots={{ toolbar: GridToolbar }}
+          slotProps={{ toolbar: { showQuickFilter: true } }}
+          rows={rows}
+          initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 25,
+                },
               },
-            },
-        }}
-        pageSizeOptions={[5,10,25,50,100]}
-        pagination
-      />
+          }}
+          pageSizeOptions={[5,10,25,50,100]}
+          pagination
+          className="MuiDataGrid-root"
+        />
+      </div>
       <Modal open={openModal} onClose={handleCloseModal}>
         <Paper className="bfx-modal-content">
             <Box className="bfx-modal-header">
@@ -201,8 +359,7 @@ const CatalogoBFX: React.FC = () => {
                 </Box>
             )}
         </Paper>
-    </Modal>
-
+      </Modal>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { IconButton, Box, Typography, Modal, Paper, Button } from '@mui/material';
+import { IconButton, Box, Typography, Modal, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
@@ -8,8 +8,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
 import { DataGrid, GridToolbar, GridRowsProp, GridColDef } from '@mui/x-data-grid';
 import Swal from 'sweetalert2';
-import './catalogoquality.scss';
 import DeleteIcon from '@mui/icons-material/Delete';
+import './catalogovaso.scss';
 
 interface RowData {
   id: number;
@@ -29,14 +29,9 @@ interface RowData {
   rfid: string;
   status: number;
   uom: string | null;
-  individualUnits: number;
-  itemDescription: string;
-  itemNumber: string;
-  totalUnits: number;
-  shippingUnits: number;
-  inventoryLot: string;
-  customer: string;
-  traceability: string;
+  amountPerBox: number;
+  boxes: number;
+  totalAmount: number;
   prodEtiquetaRFIDId: number;
 }
 
@@ -52,14 +47,14 @@ const printers: Printer[] = [
   { id: 3, name: 'Impresora 3', ip: '172.16.20.58' }
 ];
 
-const CatalogoQuality: React.FC = () => {
+const CatalogoVaso: React.FC = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
 
   useEffect(() => {
-    axios.get('http://172.16.10.31/api/LabelQuality')
+    axios.get('http://172.16.10.31/api/Vaso')
       .then(response => {
         setRows(response.data.map((item: any) => ({
           id: item.id,
@@ -79,16 +74,10 @@ const CatalogoQuality: React.FC = () => {
           rfid: item.rfid,
           status: item.status,
           uom: item.uom,
-          individualUnits: item.prodExtrasQuality.individualUnits,
-          itemDescription: item.prodExtrasQuality.itemDescription,
-          itemNumber: item.prodExtrasQuality.itemNumber,
-          totalUnits: item.prodExtrasQuality.totalUnits,
-          shippingUnits: item.prodExtrasQuality.shippingUnits,
-          inventoryLot: item.prodExtrasQuality.inventoryLot,
-          customer: item.prodExtrasQuality.customer,
-          traceability: item.prodExtrasQuality.traceability,
-          prodEtiquetaRFIDId: item.prodExtrasQuality.prodEtiquetaRFIDId,
-          claveUnidad: item.claveUnidad
+          amountPerBox: item.prodVasos.amountPerBox,
+          boxes: item.prodVasos.boxes,
+          totalAmount: item.prodVasos.totalAmount,
+          prodEtiquetaRFIDId: item.prodVasos.prodEtiquetaRFIDId
         })));
       })
       .catch(error => console.error('Error fetching data:', error));
@@ -102,6 +91,39 @@ const CatalogoQuality: React.FC = () => {
   const handlePrintClick = (row: RowData) => {
     showPrinterSelection(row);
   };
+  const handleDeleteClick = (row: RowData) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Seguro que quieres eliminar la trazabilidad: ${row.trazabilidad}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminarlo'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://172.16.10.31/api/Vaso/${row.trazabilidad}`)
+          .then(response => {
+            Swal.fire(
+              'Eliminado!',
+              'La etiqueta ha sido eliminada.',
+              'success'
+            );
+            // Remueve la fila eliminada del estado
+            setRows(rows.filter(r => r.trazabilidad !== row.trazabilidad));
+          })
+          .catch(error => {
+            Swal.fire(
+              'Error!',
+              'Hubo un problema al eliminar la etiqueta.',
+              'error'
+            );
+            console.error('Error al eliminar la etiqueta:', error);
+          });
+      }
+    });
+  };
+  
 
   const showPrinterSelection = (row: RowData) => {
     Swal.fire({
@@ -141,19 +163,15 @@ const CatalogoQuality: React.FC = () => {
           rfid: row.rfid,
           status: row.status,
           fecha: row.fecha,
-          postExtraQuality: {
-            individualUnits: row.individualUnits,
-            itemDescription: row.itemDescription,
-            itemNumber: row.itemNumber,
-            totalUnits: row.totalUnits,
-            shippingUnits: row.shippingUnits,
-            inventoryLot: row.inventoryLot,
-            customer: row.customer,
-            traceability: row.traceability
+          postExtraVasoDto: { // Change the key here
+            prodEtiquetaRFIDId: row.prodEtiquetaRFIDId,
+            amountPerBox: row.amountPerBox,
+            boxes: row.boxes,
+            totalAmount: row.totalAmount
           },
         };
 
-        axios.post(`http://172.16.10.31/Printer/QualityPrinterIP?ip=${selectedPrinter.ip}`, postData)
+        axios.post(`http://172.16.10.31/api/Vaso/PostPrintVaso?ip=${selectedPrinter.ip}`, postData)
           .then(response => {
             console.log('Impresión iniciada:', response.data);
             Swal.fire('Éxito', 'Impresión iniciada correctamente', 'success');
@@ -165,39 +183,6 @@ const CatalogoQuality: React.FC = () => {
       }
     });
   };
-  const handleDeleteClick = (row: RowData) => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `Seguro que quieres eliminar la trazabilidad: ${row.trazabilidad}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminarlo'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios.delete(`http://172.16.10.31/api/LabelQuality/${row.trazabilidad}`)
-          .then(response => {
-            Swal.fire(
-              'Eliminado!',
-              'La etiqueta ha sido eliminada.',
-              'success'
-            );
-            // Remueve la fila eliminada del estado
-            setRows(rows.filter(r => r.trazabilidad !== row.trazabilidad));
-          })
-          .catch(error => {
-            Swal.fire(
-              'Error!',
-              'Hubo un problema al eliminar la etiqueta.',
-              'error'
-            );
-            console.error('Error al eliminar la etiqueta:', error);
-          });
-      }
-    });
-  };
-  
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -205,15 +190,21 @@ const CatalogoQuality: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 100 },
-    { field: 'customer', headerName: 'Customer', width: 250 },
-    { field: 'itemDescription', headerName: 'Item Description', width: 400 },
-    { field: 'itemNumber', headerName: 'Item Number', width: 150 },
-    { field: 'inventoryLot', headerName: 'Inventory Lot', width: 150 },
-    { field: 'traceability', headerName: 'Traceability', width: 200 },
-    { field: 'individualUnits', headerName: 'Individual Units', type: 'number', width: 150 },
-    { field: 'totalUnits', headerName: 'Total Units', type: 'number', width: 150 },
-    { field: 'shippingUnits', headerName: 'Shipping Units', type: 'number', width: 100 },
-    { field: 'prodEtiquetaRFIDId', headerName: 'RFID', type: 'number', width: 300 },
+    { field: 'area', headerName: 'Area', width: 150 },
+    { field: 'fecha', headerName: 'Fecha', width: 200 },
+    { field: 'claveProducto', headerName: 'Clave Producto', width: 150 },
+    { field: 'nombreProducto', headerName: 'Nombre Producto', width: 200 },
+    { field: 'claveOperador', headerName: 'Clave Operador', width: 150 },
+    { field: 'operador', headerName: 'Operador', width: 200 },
+    { field: 'turno', headerName: 'Turno', width: 100 },
+    { field: 'trazabilidad', headerName: 'Trazabilidad', width: 200 },
+    { field: 'orden', headerName: 'Orden', width: 100 },
+    { field: 'rfid', headerName: 'RFID', width: 200 },
+    { field: 'prodEtiquetaRFIDId', headerName: 'ID RFID', width: 200 },
+    { field: 'status', headerName: 'Status', width: 100 },
+    { field: 'amountPerBox', headerName: 'Amount Per Box', width: 150 },
+    { field: 'boxes', headerName: 'Boxes', width: 100 },
+    { field: 'totalAmount', headerName: 'Total Amount', width: 150 },
     {
       field: 'acciones',
       headerName: 'Acciones',
@@ -236,13 +227,14 @@ const CatalogoQuality: React.FC = () => {
     },
   ];
   
+
   return (
-    <div className='catalogo-quality'>
+    <div className='catalogo-vaso'>
       <IconButton onClick={() => navigate('/catalogos')} className="back-button">
         <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
       </IconButton>
       <Typography variant="h4" className="title">
-        CATALOGO ETIQUETADO QUALITY
+        CATALOGO ETIQUETADO VASO
       </Typography>
       <div className="data-grid-container">
         <DataGrid
@@ -266,44 +258,17 @@ const CatalogoQuality: React.FC = () => {
         />
       </div>
       <Modal open={openModal} onClose={handleCloseModal}>
-        <Paper className="quality-modal-content">
-          <Box className="quality-modal-header">
+        <Paper className="vaso-modal-content">
+          <Box className="vaso-modal-header">
             <Typography variant="h6">Vista Previa de la Etiqueta</Typography>
             <IconButton onClick={handleCloseModal}>
               <CloseIcon />
             </IconButton>
           </Box>
           {selectedRow && (
-            <Box className="quality-modal-body">
+            <Box className="vaso-modal-body">
               <div className="row">
-                <Typography><strong>Customer:</strong> {selectedRow.customer}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Item Description:</strong> {selectedRow.itemDescription}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Item Number:</strong> {selectedRow.itemNumber}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Inventory Lot:</strong> {selectedRow.inventoryLot}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Traceability:</strong> {selectedRow.traceability}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Individual Units:</strong> {selectedRow.individualUnits}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Total Units:</strong> {selectedRow.totalUnits}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Shipping Units:</strong> {selectedRow.shippingUnits}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>RFID:</strong> {selectedRow.prodEtiquetaRFIDId}</Typography>
-              </div>
-              <div className="row">
-                <Typography><strong>Area:</strong> {selectedRow.area}</Typography>
+                <Typography><strong>Área:</strong> {selectedRow.area}</Typography>
               </div>
               <div className="row">
                 <Typography><strong>Fecha:</strong> {selectedRow.fecha}</Typography>
@@ -338,6 +303,15 @@ const CatalogoQuality: React.FC = () => {
               <div className="row">
                 <Typography><strong>RFID:</strong> {selectedRow.rfid}</Typography>
               </div>
+              <div className="row">
+                <Typography><strong>Amount Per Box:</strong> {selectedRow.amountPerBox}</Typography>
+              </div>
+              <div className="row">
+                <Typography><strong>Boxes:</strong> {selectedRow.boxes}</Typography>
+              </div>
+              <div className="row">
+                <Typography><strong>Total Amount:</strong> {selectedRow.totalAmount}</Typography>
+              </div>
             </Box>
           )}
         </Paper>
@@ -346,4 +320,4 @@ const CatalogoQuality: React.FC = () => {
   );
 };
 
-export default CatalogoQuality;
+export default CatalogoVaso;

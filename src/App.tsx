@@ -23,7 +23,14 @@ import Operadores from './pages/catalogo/catalogooperador/CatalogoOperador';
 import Turno from './pages/catalogo/catalogoturno/CatalgoTurno';
 import Ordenes from './pages/catalogo/catalogoordenes/CatalogoOrdenes';
 import ProductoQuality from './pages/catalogo/catalogoquality/CatalogoQuality';
+
 import Footer from './components/footer/Footer';
+import CatalogoVaso from './pages/catalogo/catalogovaso/CatalogoVaso';
+import MoudulosConsultas from './pages/consultas/moduloconsultas/MoudulosConsultas';
+import ConsultaBFX from './pages/consultas/consultasbfx/ConsultaBFX';
+import ConsultaDestiny from './pages/consultas/consultasdestiny/ConsultaDestiny';
+import ConsultaQuality from './pages/consultas/consultasquality/ConsultaQuality';
+import ConsultaVaso from './pages/consultas/consultasvaso/ConsultaVaso';
 
 
 
@@ -48,13 +55,18 @@ function App() {
             <Route path="/entradas" element={<Entradas />} />
             <Route path="/salidas" element={<Salidas />} />
             <Route path="/ubicacion" element={<Ubicacion />} />
-            <Route path="/consultas" element={<Consultas />} />
+            <Route path="/consultas" element={<MoudulosConsultas />} />
+            <Route path="/consultaBFX" element={<ConsultaBFX />} />
+            <Route path="/consultaDestiny" element={<ConsultaDestiny />} />
+            <Route path="/consultaQuality" element={<ConsultaQuality />} />
+            <Route path="/consultaVaso" element={<ConsultaVaso />} />
             <Route path="/handheld" element={<Handheld />} />
             <Route path="/antenas" element={<Antenas />} />
             <Route path="/catalogos" element={<ModulosCatalogo />} />
             <Route path="/catalogoBioflex" element={<ProductoBioflex />} />
             <Route path="/catalogoDestiny" element={<ProductoDestiny />} />
             <Route path="/catalogoQuality" element={<ProductoQuality />} />
+            <Route path="/catalogoVaso" element={<CatalogoVaso />} />
             <Route path="/catalogoArea" element={<Area />} />
             <Route path="/catalogoMaquina" element={<Maquina />} />
             <Route path="/catalogoOperadores" element={<Operadores />} />
