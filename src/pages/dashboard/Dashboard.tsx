@@ -19,7 +19,6 @@ const icons = [
   { icon: SignalWifi4BarIcon, label: 'HANDHELD', path: '/handheld' },
   { icon: SatelliteIcon, label: 'ANTENAS', path: '/antenas' },
   { icon: LibraryBooksIcon, label: 'CATALOGOS', path: '/catalogos' },
-  { icon: PrintIcon, label: 'IMPRESION MATERIA PRIMA', path: '/modulosimpresion' },
 ];
 
 export const Dashboard: React.FC = () => {

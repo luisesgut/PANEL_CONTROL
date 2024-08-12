@@ -4,11 +4,6 @@ import './App.scss';
 import { Login } from './pages/login/Login';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import NavBar from './components/navbar/NavBar';
-import ModulosImpresion from './pages/impresion/modulosimpresion/ModulosImpresion';
-import EtiquetadoBFX from './pages/impresion/etiquetadobfx/EtiquetadoBFX';
-import EtiquetadoDestiny from './pages/impresion/etiquetadodestiny/EtiquetadoDestiny';
-import EtiquetadoQuality from './pages/impresion/etiquetadoquality/EtiquetadoQuality';
-import EtiquetadoVaso from './pages/impresion/etiquetadoVaso/EtiquetadoVaso';
 import ModulosCatalogo from './pages/catalogo/moduloscatalgo/ModulosCatalogo';
 import EtiquetadoBFX_produccion from './pages/impresion produccion/etiquetadobfx_produccion/EtiquetadoBFX__produccion';
 import EtiquetadoDestiny_produccion from './pages/impresion produccion/etiquetadodestiny_produccion/EtiquetadoDestiny_produccion';
@@ -71,11 +66,6 @@ function App() {
             <Route path="/catalogoOperadores" element={<Operadores />} />
             <Route path="/catalogoTurno" element={<Turno />} />
             <Route path='/catalogoOrdenes' element={<Ordenes />}/>
-            <Route path="/modulosimpresion" element={<ModulosImpresion />} />
-            <Route path="/impresionBFX" element={<EtiquetadoBFX />} />
-            <Route path="/impresionDestiny" element={<EtiquetadoDestiny />} />
-            <Route path="/impresionQuality" element={<EtiquetadoQuality />} />
-            <Route path="/impresionVaso" element={<EtiquetadoVaso />} />
             <Route path="/ModulosTarima" element={<ModulosImpresion_produccion />} />
             <Route path="/ImpresionTarimaBFX" element={<EtiquetadoBFX_produccion />} />
             <Route path="/ImpresionTarimaDestiny" element={<EtiquetadoDestiny_produccion />} />
