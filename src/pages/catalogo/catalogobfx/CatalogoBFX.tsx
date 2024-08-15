@@ -62,7 +62,7 @@ const CatalogoBFX: React.FC = () => {
   const [printers, setPrinters] = useState<Printer[]>([
     { id: 1, name: 'Impresora 1', ip: '172.16.20.56' },
     { id: 2, name: 'Impresora 2', ip: '172.16.20.57' },
-    { id: 3, name: 'Impresora 3', ip: '172.16.20.58' }
+    { id: 3, name: 'Impresora 3', ip: '172.16.20.112' }
   ]);
 
   useEffect(() => {
@@ -343,9 +343,6 @@ const CatalogoBFX: React.FC = () => {
           </IconButton>
           <IconButton onClick={() => handleGeneratePDFClick(params.row)}>
             <ArticleIcon />
-          </IconButton>
-          <IconButton onClick={() => handleEditClick(params.row)}>
-            <EditIcon />
           </IconButton>
           <IconButton onClick={() => handleDeleteClick(params.row)}>
             <DeleteIcon />

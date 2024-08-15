@@ -49,7 +49,7 @@ interface Printer {
 const printers: Printer[] = [
   { id: 1, name: 'Impresora 1', ip: '172.16.20.56' },
   { id: 2, name: 'Impresora 2', ip: '172.16.20.57' },
-  { id: 3, name: 'Impresora 3', ip: '172.16.20.58' }
+  { id: 3, name: 'Impresora 3', ip: '172.16.20.112' }
 ];
 
 const CatalogoQuality: React.FC = () => {

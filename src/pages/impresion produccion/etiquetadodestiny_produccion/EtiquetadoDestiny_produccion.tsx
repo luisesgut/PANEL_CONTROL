@@ -124,7 +124,7 @@ const [resetKey, setResetKey] = useState(0);
   const [qtyUOM, setQtyUOM] = React.useState<string>("");
   const [shippingUnits, setShippingUnits] = React.useState<string>("");
   const [data, setData] = useState<InfoExtraDestiny[]>([]);
-  const [inventoryLot, setInventoryLot] = useState<InfoExtraDestiny | null>(null);
+  const [inventoryLot, setInventoryLot] = useState<string>('');
   const [customerPO, setCustomerPO] = useState<string>("");
   const [itemDescription, setItemDescription] = useState<string>("");
   const [itemNumber, setItemNumber] = useState<string>("");  
@@ -133,11 +133,20 @@ const [resetKey, setResetKey] = useState(0);
   const [claveUnidad, setClaveUnidad] = useState('Unidad');
   const [unidad, setUnidad] = useState('Piezas');
   const [piezasFormatted, setPiezasFormatted] = useState(''); 
+  
+  useEffect(() => {
+    Swal.fire({
+      icon: 'info',
+      title: 'Información Importante',
+      text: 'A partir de ahora, ya no será necesario ingresar el lote del cliente. La aplicación te lo brindará automáticamente. Solo necesitas la orden de producción. Los campos que se completarán automáticamente son: UOM, INVENTORY LOT, PALLET ID, CUSTOMER PO, ITEM DESCRIPTION, ITEM#.',
+      confirmButtonText: 'Entendido',
+    });
+  }, []);
 
   const printerOptions = [
     { name: "Impresora 1", ip: "172.16.20.56" },
     { name: "Impresora 2", ip: "172.16.20.57" },
-    { name: "Impresora 3", ip: "172.16.20.58" }
+    { name: "Impresora 3", ip: "172.16.20.112" }
   ];
 
   const handlePesoTarimaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -335,7 +344,7 @@ const resetValores = () => {
   setSelectedUOM('');
   setQtyUOM('');
   setShippingUnits('');
-  setInventoryLot(null);
+  setInventoryLot('');
   setCustomerPO('');
   setItemDescription('');
   setItemNumber('');
@@ -555,7 +564,7 @@ const resetValores = () => {
         postExtraDestinyDto: {
             shippingUnits: shippingUnits || 0,
             uom: selectedUOM || '',
-            inventoryLot: inventoryLot ? inventoryLot.u_PO2 : '',
+            inventoryLot: inventoryLot,
             individualUnits: qtyUOM || 0,
             palletId: traceabilityCode || '',
             customerPo: customerPO || '',
@@ -705,21 +714,38 @@ const calculatePieces = () => {
 
   useEffect(() => {
     if (selectedArea && selectedOrden) {
-      axios.get<Orden[]>(`http://172.16.10.31/api/Order?areaId=${selectedArea}`).then(response => {
-        const orden = response.data.find(orden => orden.id === selectedOrden);
-        if (orden) {
-          const productoConcatenado = `${orden.claveProducto} ${orden.producto}`;
-          setFilteredProductos(productoConcatenado); // Establece el producto concatenado
-          setUnidad(orden.unidad || "default_unit"); // Establece la unidad o una por defecto si no existe
-          
-          // Aplica la lógica para claveUnidad
-          const validKeys = ["MIL", "XBX", "H87"];
-          const nuevaClaveUnidadLocal = validKeys.includes(orden.claveUnidad) ? orden.claveUnidad : "Pzas";
-          setClaveUnidad(nuevaClaveUnidadLocal);
-        }
-      });
+        axios.get<Orden[]>(`http://172.16.10.31/api/Order?areaId=${selectedArea}`).then(response => {
+            const orden = response.data.find(orden => orden.id === selectedOrden);
+            if (orden) {
+                const productoConcatenado = `${orden.claveProducto} ${orden.producto}`;
+                setFilteredProductos(productoConcatenado);
+                setUnidad(orden.unidad || "default_unit");
+
+                const validKeys = ["MIL", "XBX", "H87"];
+                const nuevaClaveUnidadLocal = validKeys.includes(orden.claveUnidad) ? orden.claveUnidad : "Pzas";
+                setClaveUnidad(nuevaClaveUnidadLocal);
+
+                // Usar el nuevo endpoint para obtener los datos adicionales
+                axios.get<InfoExtraDestiny[]>(`http://172.16.10.31/api/LabelDestiny/GetInfoExtraDestinyByPedidoClave?pedido=${orden.orden}&clave=${orden.claveProducto}`)
+                    .then((extraResponse) => {
+                        const infoExtra = extraResponse.data[0]; // Asumiendo que solo te interesa el primer elemento del array
+                        if (infoExtra) {
+                            setCustomerPO(infoExtra.u_PO1 || " ");
+                            setItemDescription(infoExtra.frgnName);
+                            setItemNumber(infoExtra.u_ItemNo);
+                            
+                            // Establecer solo el valor de u_PO2 en el Inventory Lot
+                            setInventoryLot(infoExtra.u_PO2 || '');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching extra info:', error);
+                    });
+            }
+        });
     }
-  }, [selectedArea, selectedOrden]); //AGREGAR A LAS VISTASSSSSSS
+}, [selectedArea, selectedOrden]);
+
 
   useEffect(() => {
     calculatePieces();
@@ -732,15 +758,6 @@ const calculatePieces = () => {
             })
             .catch(error => console.error('Error fetching data: ', error));
     }, []);
-
-    // Actualizar campos basados en la selección del lote de inventario
-    useEffect(() => {
-        if (inventoryLot) {
-            setCustomerPO(inventoryLot.u_PO1 || " ");
-            setItemDescription(inventoryLot.frgnName);
-            setItemNumber(inventoryLot.u_ItemNo);
-        }
-    }, [inventoryLot]);
 
   // Definir el tipo para el objeto de mapeo.
   interface UOMMap {
@@ -867,21 +884,19 @@ const calculatePieces = () => {
           />
 
           <TextField fullWidth label="UOM" value={selectedUOM} InputProps={{ readOnly: true }} variant="outlined" key={`UOM-${resetKey}`}/>
-            
-          <Autocomplete
-            value={inventoryLot}
-            onChange={(event, newValue) => {
-                setInventoryLot(newValue);
+          <TextField
+            label="Inventory Lot"
+            fullWidth
+            value={inventoryLot} // Este valor se establece desde la API en el useEffect
+            InputProps={{
+              readOnly: true, // Hace que el campo sea solo de lectura
             }}
-            options={data}
-            getOptionLabel={(option) => `${option.u_PO2} - ${option.clave} ${option.producto}`}
-            renderInput={(params) => <TextField {...params} label="Inventory Lot" fullWidth />}
+            variant="outlined"
           />
-
           <TextField
             key={`QTY/UOM(Eaches)-${resetKey}`}
             fullWidth
-            label="Qty/UOM(Eaches)"
+            label="CANTIDAD POR CAJAS/ROLLOS"
             variant="outlined"
             type="number"
             value={qtyUOM}
@@ -898,7 +913,7 @@ const calculatePieces = () => {
           <TextField
             key={`Shipping Units/Pallet-${resetKey}`}
             fullWidth
-            label="Shipping Units/Pallet"
+            label="CANTIDAD DE CAJAS O ROLLOS"
             variant="outlined"
             type="number"
             value={shippingUnits}
@@ -935,10 +950,7 @@ const calculatePieces = () => {
               <Typography><strong>UOM:</strong> {selectedUOM}</Typography>
             </Box>
             <Box className="modal-row">
-              <Typography>
-                <strong>INVENTORY LOT:</strong> {inventoryLot ? inventoryLot.u_PO2 : 'N/A'}
-              </Typography>
-
+              <Typography><strong>INVENTORY LOT:</strong> {inventoryLot || 'N/A'}</Typography>
               <Typography><strong>QTY/UOM (EACHES):</strong> {qtyUOM}</Typography>
           </Box>
             <Box className="modal-row">

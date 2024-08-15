@@ -100,7 +100,7 @@ const EtiquetadoVaso_produccion: React.FC = () => {
   const printerOptions = [
     { name: "Impresora 1", ip: "172.16.20.56" },
     { name: "Impresora 2", ip: "172.16.20.57" },
-    { name: "Impresora 3", ip: "172.16.20.58" }
+    { name: "Impresora 3", ip: "172.16.20.112" }
   ];
   
 
