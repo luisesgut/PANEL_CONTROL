@@ -11,7 +11,7 @@ import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import { styled } from '@mui/material/styles';
 
-
+// Interfaces para definir la estructura de los datos utilizados en el componente.
 interface Area {
   id: number;
   area: string;
@@ -69,6 +69,7 @@ interface Printer {
 
 const EtiquetadoBFX_produccion: React.FC = () => {
   const navigate = useNavigate();
+  // Estados para manejar los datos y opciones seleccionadas.
   const [areas, setAreas] = useState<Area[]>([]);
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [operadores, setOperadores] = useState<Operador[]>([]);
@@ -92,32 +93,31 @@ const EtiquetadoBFX_produccion: React.FC = () => {
   const [date, setDate] = useState('');
   const [resetKey, setResetKey] = useState(0);
   const [claveUnidad, setClaveUnidad] = useState('Unidad');
-
   const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
-
+  // Aqui se asginan los nombres y las IP de las impresoras
   const printerOptions = [
     { name: "Impresora 1", ip: "172.16.20.56" },
     { name: "Impresora 2", ip: "172.16.20.57" },
     { name: "Impresora 3", ip: "172.16.20.112" }
   ];
   
-
+  // Manejador para cambiar el valor de peso de la tarima, validando que esté en el rango correcto.
   const handlePesoTarimaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(event.target.value);
     if (!isNaN(value) && value >= 0 && value <= 52) {
       setPesoTarima(value);
     } else {
       console.error('El valor debe estar entre 0 y 52.');
-      // Aquí puedes elegir restablecer el valor al mínimo permitido o simplemente ignorar la entrada.
       setPesoTarima(Math.max(Math.min(value, 52), 0));
     }
   };
-
+  // Manejador para actualizar la fecha seleccionada
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Assuming you want to keep the date in 'yyyy-MM-dd' format in the state
     setDate(event.target.value);
   };
 
+
+  // Se utiliza para cargar las areas y turnos en cuanto se inicializa el componente
   useEffect(() => {
     axios.get<Area[]>('http://172.16.10.31/api/Area').then(response => {
       setAreas(response.data);
@@ -127,6 +127,7 @@ const EtiquetadoBFX_produccion: React.FC = () => {
     });
   }, []);
 
+  // Efecto para cargar las órdenes y máquinas disponibles según el área seleccionada.
   useEffect(() => {
     if (selectedArea) {
       const areaName = areas.find(a => a.id === selectedArea)?.area ;
@@ -148,6 +149,7 @@ const EtiquetadoBFX_produccion: React.FC = () => {
     }
   }, [selectedArea, areas]);
 
+  // Efecto para cargar los operadores según el área seleccionada.
   useEffect(() => {
     if (selectedArea) {
       axios.get<Operador[]>(`http://172.16.10.31/api/Operator?IdArea=${selectedArea}`)
@@ -158,6 +160,7 @@ const EtiquetadoBFX_produccion: React.FC = () => {
     }
   }, [selectedArea]);
 
+   // Efecto para actualizar el producto y unidad en función del área y la orden seleccionada.
   useEffect(() => {
     if (selectedArea && selectedOrden) {
       axios.get<Orden[]>(`http://172.16.10.31/api/Order?areaId=${selectedArea}`).then(response => {
@@ -177,7 +180,7 @@ const EtiquetadoBFX_produccion: React.FC = () => {
   }, [selectedArea, selectedOrden]); //AGREGAR A LAS VISTASSSSSSS
   
   
-
+  // Abre el modal y genera la trazabilidad y el código RFID antes de abrirlo.
   const handleOpenModal = () => {
     {/*const today = new Date();
     const formattedDate = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
@@ -185,9 +188,11 @@ const EtiquetadoBFX_produccion: React.FC = () => {
     generateTrazabilidad(); // Generar trazabilidad y RFID antes de abrir el modal
     setOpenModal(true);
   };
-
+  
+  // Para brindarle el estado de abrir o cerrar la modal
   const handleCloseModal = () => setOpenModal(false);
 
+  // Valida los pesos y condiciones antes de proceder a la generación de la etiqueta.
   const handleGenerateEtiqueta = () => {
     // Verificamos que los pesos bruto y neto no sean iguales y manejen las otras condiciones
     if (pesoBruto !== undefined && pesoNeto !== undefined) {
@@ -232,7 +237,7 @@ const RedButton = styled(Button)({
   },
 });
 
-
+   // Genera el código de trazabilidad y RFID.
   const generateTrazabilidad = async () => {
     const base = '2';
     const areaMap: { [key: string]: string | undefined } = {
@@ -273,33 +278,33 @@ const RedButton = styled(Button)({
     }
 };
 
-  const resetForm = () => {
-    setPesoBruto(undefined);
-    setPesoNeto(undefined);
-    setPesoTarima(undefined);
-    setPiezas(undefined);
-
-    setResetKey(prevKey => prevKey + 1);  // Incrementa la key para forzar rerender
-  };
-
-  const resetValores = () => {
-    setPiezas(0);
-    setUnidad('');
-    setDate('');
-    setSelectedArea(undefined);
-    setSelectedOrden(undefined);
-    setSelectedMaquina(undefined);
-    setSelectedTurno(undefined);
-    setSelectedOperador(undefined);
-    setFilteredProductos('');
-    setPesoBruto(undefined);
-    setPesoNeto(undefined);
-    setPesoTarima(undefined);
-
-    setResetKey(prevKey => prevKey + 1);
+ // Resetea los valores del formulario.
+ const resetForm = () => {
+  setPesoBruto(undefined);
+  setPesoNeto(undefined);
+  setPesoTarima(undefined);
+  setPiezas(undefined);
+  setResetKey(prevKey => prevKey + 1);  // Forzar rerender al incrementar la key
 };
 
+// Resetea los valores globales del formulario.
+const resetValores = () => {
+  setPiezas(0);
+  setUnidad('');
+  setDate('');
+  setSelectedArea(undefined);
+  setSelectedOrden(undefined);
+  setSelectedMaquina(undefined);
+  setSelectedTurno(undefined);
+  setSelectedOperador(undefined);
+  setFilteredProductos('');
+  setPesoBruto(undefined);
+  setPesoNeto(undefined);
+  setPesoTarima(undefined);
+  setResetKey(prevKey => prevKey + 1);
+};
 
+//Genera el rotulo de produccion en base a los datos ingresados 
 const generatePDF = (data: EtiquetaData) => { //MODIFICAR ROTULO
   const { claveProducto, nombreProducto, pesoBruto, orden, fecha } = data;
 
@@ -346,7 +351,7 @@ const generatePDF = (data: EtiquetaData) => { //MODIFICAR ROTULO
 };
 
 
-
+ // Valida los campos requeridos antes de confirmar la etiqueta y realizar la impresión.
 const handleConfirmEtiqueta = () => {
   if (!selectedPrinter) {
       Swal.fire({
@@ -444,13 +449,6 @@ const handleConfirmEtiqueta = () => {
           console.error('Error al generar la etiqueta:', error);
       });
 };
-
-
-
-  
-
-
-
 
   return (
     <div>
