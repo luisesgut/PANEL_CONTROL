@@ -646,11 +646,11 @@ const resetValores = () => {
 
 
 
-const calculatePieces = () => {
-  const qtyNumber = parseFloat(qtyUOM) || 0;
-  const unitsNumber = parseFloat(shippingUnits) || 0;
-  const totalPiezas = qtyNumber * unitsNumber;
+const calculatePieces = (inputPiezas: string | number) => {
+  // Convertir el valor a número
+  const totalPiezas = parseFloat(inputPiezas.toString()) || 0;
 
+  // Establecer el valor de `piezas`
   setPiezas(totalPiezas);
 
   // Verificar si claveUnidad es "MIL" y formatear el valor si es necesario
@@ -662,15 +662,18 @@ const calculatePieces = () => {
   }
 };
 
-  const handleQtyUOMChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQtyUOM(event.target.value);
-    calculatePieces();
-  };
 
-  const handleShippingUnitsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setShippingUnits(event.target.value);
-    calculatePieces();
-  };
+
+const handleQtyUOMChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setQtyUOM(event.target.value);
+  calculatePieces(event.target.value); // Pasar el valor correcto
+};
+
+const handleShippingUnitsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setShippingUnits(event.target.value);
+  calculatePieces(event.target.value); // Pasar el valor correcto
+};
+
 
   useEffect(() => {
     axios.get<Area[]>('http://172.16.10.31/api/Area').then(response => {
@@ -747,9 +750,10 @@ const calculatePieces = () => {
 }, [selectedArea, selectedOrden]);
 
 
-  useEffect(() => {
-    calculatePieces();
-  }, [qtyUOM, shippingUnits, claveUnidad]);
+useEffect(() => {
+  calculatePieces(qtyUOM || 0); // Pasar un valor por defecto si no hay valor en qtyUOM
+}, [qtyUOM, shippingUnits, claveUnidad]);
+
 
   useEffect(() => {
         axios.get('http://172.16.10.31/api/LabelDestiny/GetInfoExtraDestiny')
@@ -880,9 +884,8 @@ const calculatePieces = () => {
             variant="outlined"
             type="number"
             value={piezas || 0} // Se muestra 0 si `piezas` es undefined
-            InputProps={{ readOnly: true }}
+            onChange={(e) => calculatePieces(e.target.value)} // Aquí llamas a la función con el valor ingresado
           />
-
           <TextField fullWidth label="UOM" value={selectedUOM} InputProps={{ readOnly: true }} variant="outlined" key={`UOM-${resetKey}`}/>
           <TextField
             label="Inventory Lot"
