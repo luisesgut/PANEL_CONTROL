@@ -665,13 +665,11 @@ const calculatePieces = (inputPiezas: string | number) => {
 
 
 const handleQtyUOMChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  setQtyUOM(event.target.value);
-  calculatePieces(event.target.value); // Pasar el valor correcto
+  setQtyUOM(event.target.value);// Pasar el valor correcto
 };
 
 const handleShippingUnitsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   setShippingUnits(event.target.value);
-  calculatePieces(event.target.value); // Pasar el valor correcto
 };
 
 
@@ -748,12 +746,6 @@ const handleShippingUnitsChange = (event: React.ChangeEvent<HTMLInputElement>) =
         });
     }
 }, [selectedArea, selectedOrden]);
-
-
-useEffect(() => {
-  calculatePieces(qtyUOM || 0); // Pasar un valor por defecto si no hay valor en qtyUOM
-}, [qtyUOM, shippingUnits, claveUnidad]);
-
 
   useEffect(() => {
         axios.get('http://172.16.10.31/api/LabelDestiny/GetInfoExtraDestiny')
@@ -880,10 +872,10 @@ useEffect(() => {
           <TextField
             key={`piezas-${resetKey}`}
             fullWidth
-            label="#"
+            label="TOTAL PIEZAS"
             variant="outlined"
             type="number"
-            value={piezas || 0} // Se muestra 0 si `piezas` es undefined
+            value={piezas} // Se muestra 0 si `piezas` es undefined
             onChange={(e) => calculatePieces(e.target.value)} // Aquí llamas a la función con el valor ingresado
           />
           <TextField fullWidth label="UOM" value={selectedUOM} InputProps={{ readOnly: true }} variant="outlined" key={`UOM-${resetKey}`}/>
