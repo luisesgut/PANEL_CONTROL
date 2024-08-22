@@ -648,7 +648,7 @@ const resetValores = () => {
 
 const calculatePieces = (inputPiezas: string | number) => {
   // Convertir el valor a número
-  const totalPiezas = parseFloat(inputPiezas.toString()) || 0;
+  const totalPiezas = parseFloat(inputPiezas.toString());
 
   // Establecer el valor de `piezas`
   setPiezas(totalPiezas);

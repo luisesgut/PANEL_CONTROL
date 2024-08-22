@@ -50,6 +50,7 @@ interface Orden {
   itemNumber?: string;
   unidad: string;
   claveUnidad:string;
+  linea:number;
 }
 
 interface EtiquetaData {
@@ -85,6 +86,7 @@ const EtiquetadoVaso_produccion: React.FC = () => {
   const [piezas, setPiezas] = useState<number | undefined>();
   const [selectedOperador, setSelectedOperador] = useState<number | undefined>();
   const [openModal, setOpenModal] = useState(false);
+  const [lineaOrden, setLineaorden] = useState<number | undefined>();
   /*const [currentDate, setCurrentDate] = useState<string>('');*/
   const [trazabilidad, setTrazabilidad] = useState<string>('');
   const [rfid, setRfid] = useState<string>('');
@@ -168,6 +170,7 @@ const EtiquetadoVaso_produccion: React.FC = () => {
           const productoConcatenado = `${orden.claveProducto} ${orden.producto}`;
           setFilteredProductos(productoConcatenado); // Establece el producto concatenado
           setUnidad(orden.unidad || "default_unit"); // Establece la unidad o una por defecto si no existe
+          setLineaorden(orden.linea);
           
           // Aplica la lógica para claveUnidad
           const validKeys = ["MIL", "XBX", "H87"];
@@ -300,9 +303,10 @@ useEffect(() => {
     const areaCode = areaMap[selectedAreaName] || '0';
     const maquinaNo = filteredMaquinas.find(m => m.id === selectedMaquina)?.no || '00';
     const maquinaCode = maquinaNo.toString().padStart(2, '0');
-    const ordenNo = ordenes.find(o => o.id === selectedOrden)?.orden || '000000';
-    const ordenCode = ordenNo.toString().padStart(6, '0');
-    const partialTrazabilidad = `${base}${areaCode}${maquinaCode}${ordenCode}`;
+    const ordenNo = ordenes.find(o => o.id === selectedOrden)?.orden || '00000';
+    const lineaNo = (lineaOrden ?? 1).toString().padStart(1, '0');
+    const ordenCode = ordenNo.toString().padStart(5, '0');
+    const partialTrazabilidad = `${base}${areaCode}${maquinaCode}${lineaNo}${ordenCode}`;
 
     try {
         const response = await axios.get('http://172.16.10.31/api/RfidLabel');
