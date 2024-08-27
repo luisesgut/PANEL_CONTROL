@@ -6,23 +6,23 @@ import BioflexImage from '../../../assets/bioflex.png';
 import DestinyImage from '../../../assets/destiny.png'; 
 import QualityImage from '../../../assets/quality.png';
 import ReymaImage from '../../../assets/Reyma.png';
-import './modulosconsultas.scss';
+import './modulosreentarimado.scss';
 
 const modules = [
-  { image: BioflexImage, label: 'BIOFLEX', path: '/ConsultaBFX' },
-  { image: DestinyImage, label: 'DESTINY', path: '/ConsultaDestiny' },
-  { image: QualityImage, label: 'QUALITY', path: '/ConsultaQuality' },
-  { image: ReymaImage, label: 'VASO', path: '/ConsultaVaso' },
+  { image: BioflexImage, label: 'BIOFLEX', path: '/reentarimadoBFX' },
+  { image: DestinyImage, label: 'DESTINY', path: '/reentarimadoDestiny' },
+  { image: QualityImage, label: 'QUALITY', path: '/reentarimadoQuality' },
+  { image: ReymaImage, label: 'VASO', path: '/reentarimadoVaso' },
 ];
 
 {/*const modules2 = [
   { image: BioflexImage, label: 'MATERIA PRIMA', path: '/impresionMP' },
 ];*/}
-const MoudulosConsultas: React.FC = () => {
+const MoudulosReentarimado: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className='modulos-consulta'>
+    <div className='modulos-reentarimado'>
       <Box sx={{ width: '100%', p: 1, position: 'relative' }}>
         <IconButton
           onClick={() => navigate('/')}
@@ -78,4 +78,4 @@ const MoudulosConsultas: React.FC = () => {
   );
 };
 
-export default MoudulosConsultas;
+export default MoudulosReentarimado;

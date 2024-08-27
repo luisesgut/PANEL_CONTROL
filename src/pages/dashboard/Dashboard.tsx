@@ -12,6 +12,8 @@ import PrintIcon from '@mui/icons-material/Print';
 
 const icons = [
   { icon: PrintIcon, label: 'IMPRESION TARIMA PRODUCCION', path: '/ModulosTarima' },
+  { icon: PrintIcon, label: 'IMPRESION MATERIA PRIMA', path: '/ModulosMP' },
+  { icon: PrintIcon, label: 'REENTARIMADO', path: '/ModulosReentarimado' },
   { icon: ArrowUpwardIcon, label: 'ENTRADAS', path: '/entradas' },
   { icon: ExitToAppIcon, label: 'SALIDAS', path: '/salidas' },
   { icon: LocationOnIcon, label: 'UBICACIÓN', path: '/ubicacion' },
