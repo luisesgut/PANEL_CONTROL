@@ -1,28 +1,22 @@
 import * as React from 'react';
 import { Box, Grid, Typography, IconButton } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BioflexImage from '../../../assets/bioflex.png';
-import DestinyImage from '../../../assets/destiny.png'; 
-import QualityImage from '../../../assets/quality.png';
-import ReymaImage from '../../../assets/Reyma.png';
-import './modulosreentarimado.scss';
+import CategoryIcon from '@mui/icons-material/Category';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import { Link } from 'react-router-dom';
+import './modulosregistros.scss';
 
-const modules = [
-  { image: BioflexImage, label: 'BIOFLEX', path: '/reentarimadoBFX' },
-  { image: DestinyImage, label: 'DESTINY', path: '/reentarimadoDestiny' },
-  { image: QualityImage, label: 'QUALITY', path: '/reentarimadoQuality' },
-  { image: ReymaImage, label: 'VASO', path: '/reentarimadoVaso' },
+const RegistroModules = [
+  { icon: <InventoryIcon sx={{ fontSize: 60 }} />, label: 'INVENTARIO', path: '/Inventario' },
+  { icon: <CategoryIcon sx={{ fontSize: 60 }} />, label: 'INSUMOS', path: '/Insumos' },
 ];
 
-{/*const modules2 = [
-  { image: BioflexImage, label: 'MATERIA PRIMA', path: '/impresionMP' },
-];*/}
-const MoudulosReentarimado: React.FC = () => {
+const ModulosRegistros: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className='modulos-reentarimado'>
+    <div className='modulos-registros'>
       <Box sx={{ width: '100%', p: 1, position: 'relative' }}>
         <IconButton
           onClick={() => navigate('/')}
@@ -30,20 +24,20 @@ const MoudulosReentarimado: React.FC = () => {
             position: 'absolute',
             top: 8,
             left: 8,
-            zIndex: 10  // Asegura que el botón esté por encima de cualquier otro contenido
+            zIndex: 10
           }}
         >
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
         <Box sx={{ pt: 3, width: '100%', textAlign: 'center' }}>
           <Typography variant="h5" sx={{ mt: 3 }}> 
-            SELECCIONA LA TABLA QUE TE GUSTARIA CONSULTAR
+            SELECCIONA EL MODULO DE REGISTRO
           </Typography>
         </Box>
       </Box>
       <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
         <Grid container spacing={4} justifyContent="center">
-          {modules.map((item, index) => (
+          {RegistroModules.map((item, index) => (
             <Grid item key={index} sx={{ display: 'flex', justifyContent: 'center' }}>
               <Link to={item.path} style={{ textDecoration: 'none' }}>
                 <Box
@@ -64,7 +58,7 @@ const MoudulosReentarimado: React.FC = () => {
                     mx: 2,
                   }}
                 >
-                  {item.image && <img src={item.image} alt={item.label} style={{ width: '50%', height: 'auto' }} />}
+                  {item.icon}
                   <Typography variant="h6" sx={{ mt: 2 }}>
                     {item.label}
                   </Typography>
@@ -78,4 +72,4 @@ const MoudulosReentarimado: React.FC = () => {
   );
 };
 
-export default MoudulosReentarimado;
+export default ModulosRegistros;

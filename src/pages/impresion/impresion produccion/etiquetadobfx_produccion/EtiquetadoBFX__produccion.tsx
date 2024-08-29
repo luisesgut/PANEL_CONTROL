@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import './etiquetadobfx_produccion.scss';
-import EtiquetaImpresion from '../../../assets/EiquetBFX.jpg';
+import EtiquetaImpresion from '../../../../assets/EiquetBFX.jpg';
 import { Autocomplete, createFilterOptions } from '@mui/material';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -453,7 +453,7 @@ const handleConfirmEtiqueta = () => {
   return (
     <div>
       <Box className='top-container-bfx'>
-        <IconButton onClick={() => navigate('/ModulosTarima')} className='button-back'>
+        <IconButton onClick={() => navigate('/ImpresionPT')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
       </Box>

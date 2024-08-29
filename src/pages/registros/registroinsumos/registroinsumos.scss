@@ -1,0 +1,99 @@
+.registro-insumos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  position: relative;
+  width: 100%;
+  max-width: 98%;
+  margin: auto;
+
+  .back-button {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+  }
+
+  .title {
+    margin-top: 16px;
+    padding-left: 60px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .data-grid-container {
+    width: 100%;
+    height: 600px;
+    margin: 20px 0;
+  }
+
+  .MuiDataGrid-root {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .add-button {
+    margin: 20px;
+    background-color: #46707e;
+    color: white;
+    &:hover {
+      background-color: #3b5c6b;
+    }
+  }
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  max-width: 600px;
+  margin: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+}
+
+.modal-header {
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid #ccc; 
+}
+
+.modal-body {
+  display: grid;
+  gap: 20px;
+  .MuiGrid-item {
+    min-width: 240px; /* Para asegurar un tamaño mínimo de los campos */
+  }
+
+  .MuiTextField-root,
+  .MuiAutocomplete-root {
+    width: 100%; /* Asegura que los campos ocupen todo el espacio disponible */
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+.registro-insumos .generate-button-insumos {
+  background-color: #46707e !important;
+  color: white !important;
+
+  &:hover {
+    background-color: #3b5c6b !important;
+  }
+}
+

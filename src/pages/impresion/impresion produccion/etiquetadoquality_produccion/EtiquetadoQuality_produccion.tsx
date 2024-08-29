@@ -539,7 +539,7 @@ const resetValores = () => {
   return (
     <div className='impresion-container-quality'>
       <Box className='top-container-bfx'>
-        <IconButton onClick={() => navigate('/ModulosTarima')} className='button-back'>
+        <IconButton onClick={() => navigate('/ImpresionPT')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
       </Box>

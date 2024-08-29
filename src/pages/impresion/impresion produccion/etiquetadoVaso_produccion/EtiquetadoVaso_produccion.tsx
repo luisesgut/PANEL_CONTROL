@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import './etiquetadovaso_produccion.scss';
-import EtiquetaImpresion from '../../../assets/EiquetBFX.jpg';
+import EtiquetaImpresion from '../../../../assets/EiquetBFX.jpg';
 import { Autocomplete } from '@mui/material';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -427,7 +427,7 @@ useEffect(() => {
   return (
     <div className='catalogo-vaso'>
       <Box className='top-container-vaso'>
-        <IconButton onClick={() => navigate('/ModulosTarima')} className='button-back'>
+        <IconButton onClick={() => navigate('/ImpresionPT')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
       </Box>

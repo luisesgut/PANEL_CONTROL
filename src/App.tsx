@@ -5,11 +5,11 @@ import { Login } from './pages/login/Login';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import NavBar from './components/navbar/NavBar';
 import ModulosCatalogo from './pages/catalogo/moduloscatalgo/ModulosCatalogo';
-import EtiquetadoBFX_produccion from './pages/impresion produccion/etiquetadobfx_produccion/EtiquetadoBFX__produccion';
-import EtiquetadoDestiny_produccion from './pages/impresion produccion/etiquetadodestiny_produccion/EtiquetadoDestiny_produccion';
-import EtiquetadoQuality_produccion from './pages/impresion produccion/etiquetadoquality_produccion/EtiquetadoQuality_produccion';
-import EtiquetadoVaso_produccion from './pages/impresion produccion/etiquetadoVaso_produccion/EtiquetadoVaso_produccion';
-import ModulosImpresion_produccion from './pages/impresion produccion/modulosimpresion_produccion/ModulosImpresion_produccion';
+import EtiquetadoBFX_produccion from './pages/impresion/impresion produccion/etiquetadobfx_produccion/EtiquetadoBFX__produccion';
+import EtiquetadoDestiny_produccion from './pages/impresion/impresion produccion/etiquetadodestiny_produccion/EtiquetadoDestiny_produccion';
+import EtiquetadoQuality_produccion from './pages/impresion/impresion produccion/etiquetadoquality_produccion/EtiquetadoQuality_produccion';
+import EtiquetadoVaso_produccion from './pages/impresion/impresion produccion/etiquetadoVaso_produccion/EtiquetadoVaso_produccion';
+import ModulosImpresion_produccion from './pages/impresion/impresion produccion/modulosimpresion_produccion/ModulosImpresion_produccion';
 import ProductoBioflex from './pages/catalogo/catalogobfx/CatalogoBFX';
 import ProductoDestiny from './pages/catalogo/catalogodestiny/CatalogoDestiny';
 import Area from './pages/catalogo/catalogoarea/CatalogoArea';
@@ -21,13 +21,17 @@ import ProductoQuality from './pages/catalogo/catalogoquality/CatalogoQuality';
 
 import Footer from './components/footer/Footer';
 import CatalogoVaso from './pages/catalogo/catalogovaso/CatalogoVaso';
-import MoudulosConsultas from './pages/reentarimado/modulos-reentarimado/MoudulosReentarimado';
+import MoudulosConsultas from './pages/impresion/reentarimado/modulos-reentarimado/MoudulosReentarimado';
 import ConsultaBFX from './pages/consultas/consultasbfx/ConsultaBFX';
 import ConsultaDestiny from './pages/consultas/consultasdestiny/ConsultaDestiny';
 import ConsultaQuality from './pages/consultas/consultasquality/ConsultaQuality';
 import ConsultaVaso from './pages/consultas/consultasvaso/ConsultaVaso';
-import ReentarimadoBFX from './pages/reentarimado/reentarimado-bfx/reentarimado-bfx';
-import MoudulosReentarimado from './pages/reentarimado/modulos-reentarimado/MoudulosReentarimado';
+import ReentarimadoBFX from './pages/impresion/reentarimado/reentarimado-bfx/reentarimado-bfx';
+import MoudulosReentarimado from './pages/impresion/reentarimado/modulos-reentarimado/MoudulosReentarimado';
+import ModulosImpresion from './pages/impresion/modulosimpresion/ModulosImpresion';
+import ModulosRegistros from './pages/registros/modulosregistros/ModulosRegistros';
+import RegistroInsumos from './pages/registros/registroinsumos/RegistroInsumos';
+import RegistroInventarios from './pages/registros/registroinventario/RegistroInventarios';
 
 
 
@@ -35,7 +39,6 @@ const Entradas = () => <div>Entradas</div>;
 const ImpresionMP = () => <div>Impresion Materia Prima</div>;
 const Salidas = () => <div>Salidas</div>;
 const Ubicacion = () => <div>Ubicación</div>;
-const Handheld = () => <div>Handheld</div>;
 const Antenas = () => <div>Antenas</div>;
 const ReentarimadoDestiny = () => <div>Reentarimado Destiny</div>;
 const ReentarimadoQuality = () => <div>Reentarimado Quality</div>;
@@ -53,7 +56,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/entradas" element={<Entradas />} />
-            <Route path="/ModulosMP" element={<ImpresionMP />} />
+            <Route path="/ImpresionMP" element={<ImpresionMP />} />
             <Route path="/salidas" element={<Salidas />} />
             <Route path="/ubicacion" element={<Ubicacion />} />
             <Route path="/consultas" element={<MoudulosConsultas />} />
@@ -61,12 +64,15 @@ function App() {
             <Route path="/consultaDestiny" element={<ConsultaDestiny />} />
             <Route path="/consultaQuality" element={<ConsultaQuality />} />
             <Route path="/consultaVaso" element={<ConsultaVaso />} />
-            <Route path="/ModulosReentarimado" element={<MoudulosReentarimado />} />
+            <Route path="/Reentarimado" element={<MoudulosReentarimado />} />
+            <Route path="/ModulosImpresion" element={<ModulosImpresion />} />
             <Route path="/reentarimadoBFX" element={<ReentarimadoBFX />} />
             <Route path="/reentarimadoDestiny" element={<ReentarimadoDestiny />} />
             <Route path="/reentarimadoQuality" element={<ReentarimadoQuality />} />
             <Route path="/reentarimadoVaso" element={<ReentarimadoVaso />} />
-            <Route path="/handheld" element={<Handheld />} />
+            <Route path="/ModulosRegistros" element={<ModulosRegistros />} />
+            <Route path="/Insumos" element={<RegistroInsumos/>} />
+            <Route path="/Inventario" element={<RegistroInventarios/>} />
             <Route path="/antenas" element={<Antenas />} />
             <Route path="/catalogos" element={<ModulosCatalogo />} />
             <Route path="/catalogoBioflex" element={<ProductoBioflex />} />
@@ -78,7 +84,7 @@ function App() {
             <Route path="/catalogoOperadores" element={<Operadores />} />
             <Route path="/catalogoTurno" element={<Turno />} />
             <Route path='/catalogoOrdenes' element={<Ordenes />}/>
-            <Route path="/ModulosTarima" element={<ModulosImpresion_produccion />} />
+            <Route path="/ImpresionPT" element={<ModulosImpresion_produccion />} />
             <Route path="/ImpresionTarimaBFX" element={<EtiquetadoBFX_produccion />} />
             <Route path="/ImpresionTarimaDestiny" element={<EtiquetadoDestiny_produccion />} />
             <Route path="/ImpresionTarimaQuality" element={<EtiquetadoQuality_produccion />} />
