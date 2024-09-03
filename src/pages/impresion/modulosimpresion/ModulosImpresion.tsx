@@ -5,12 +5,20 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BusinessIcon from '@mui/icons-material/Business';
 import { Link } from 'react-router-dom';
 import './modulosimpresion.scss';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import LoopIcon from '@mui/icons-material/Loop';
+import RecyclingIcon from '@mui/icons-material/Recycling';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import AgricultureIcon from '@mui/icons-material/Agriculture';
+
+import BuildIcon from '@mui/icons-material/Build';
+
 
 const ImpresionModules = [
-  { icon: <BusinessIcon sx={{ fontSize: 60 }} />, label: 'IMPRESION MATERIA PRIMA', path: '/ImpresionMP' },
-  { icon: <BusinessIcon sx={{ fontSize: 60 }} />, label: 'IMPRESION PT', path: '/ImpresionPT' },
-  { icon: <BusinessIcon sx={{ fontSize: 60 }} />, label: 'REENTARIMADO MP', path: '/ReentarimadoMP' },
-  { icon: <BusinessIcon sx={{ fontSize: 60 }} />, label: 'REENTARIMADO PT', path: '/ReentarimadoPT' },
+  { icon: <AgricultureIcon sx={{ fontSize: 60 }} />, label: 'IMPRESION MATERIA PRIMA', path: '/ImpresionMP' },
+  { icon: <Inventory2Icon sx={{ fontSize: 60 }} />, label: 'IMPRESION PT', path: '/ImpresionPT' },
+  { icon: <AutorenewIcon sx={{ fontSize: 60 }} />, label: 'REENTARIMADO MP', path: '/ReentarimadoMP' },
+  { icon: <LoopIcon sx={{ fontSize: 60 }} />, label: 'REENTARIMADO PT', path: '/ReentarimadoPT' },
 ];
 
 const ModulosImpresion: React.FC = () => {

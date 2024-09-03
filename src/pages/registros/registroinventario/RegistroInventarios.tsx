@@ -92,7 +92,7 @@ const RegistroInventarios: React.FC = () => {
                 <Autocomplete
                   value={inventoryType}
                   onChange={(event, newValue) => setInventoryType(newValue || '')}
-                  options={['Formato 1', 'Formato 2', 'Formato 3']}
+                  options={['BIOFLEX', 'DESTINY', 'QUALITY', 'VASO', 'DIGITAL']}
                   renderInput={(params) => <TextField {...params} label="Formato de Etiqueta" fullWidth />}
                 />
               </Grid>
@@ -115,12 +115,14 @@ const RegistroInventarios: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Ubicación"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  fullWidth
-                />
+              <Autocomplete
+                options={['RA-L1', 'RA-L2', 'RB-L1', 'RB-L2', 'RC-L1', 'RC-L2', 'RD-L1', 'RD-L2','RE-L1','RE-L2', 'RF-L1','RF-L2', 'RG-L1','RG-L2', 'RH-L1','RH-L2','RI-L1','RI-L2','PASILLO 1','PASILLO 2', 'PASILLO 3','PASILLO 4', 'PASILLO 5','PASILLO 6', 'PASILLO 7','PASILLO 8', 'PASILLO 9', 'CORTINA 1','CORTINA 2', 'CORTINA 3','CORTINA 4', 'CORTINA 5','CORTINA 6','CORTINA 7','CORTINA 8']}
+                value={location}
+                onChange={(event, newValue) => setLocation(newValue || '')} 
+                renderInput={(params) => (
+                  <TextField {...params} label="Ubicación" fullWidth />
+                )}
+              />
               </Grid>
               <Grid item xs={12}>
                 <Button

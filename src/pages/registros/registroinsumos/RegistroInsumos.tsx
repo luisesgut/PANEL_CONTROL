@@ -47,6 +47,9 @@
         </Box>
 
         <Box className='data-grid-container'>
+        <Button variant="contained" onClick={handleOpenModal} className='add-button'>
+          Registrar Cambio de Insumo
+        </Button>
           <DataGrid columns={columns}
             rows={rows}
             disableColumnFilter
@@ -65,10 +68,6 @@
             }}
             pageSizeOptions={[5,10,25,50,100]} />
         </Box>
-
-        <Button variant="contained" onClick={handleOpenModal} className='add-button'>
-          Registrar Cambio de Insumo
-        </Button>
         <Modal open={openModal} onClose={handleCloseModal}>
           <Box className='modal-content'>
             <Box>
