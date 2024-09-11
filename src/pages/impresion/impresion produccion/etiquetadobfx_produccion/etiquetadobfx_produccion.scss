@@ -9,7 +9,6 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   justify-content: center; /* Alineación al inicio para cuando hay scroll */
-  min-height: 100vh; /* Usa min-height en lugar de height para permitir que se expanda */
   background-color: #ffffff;
   overflow-x: hidden; /* Oculta el desbordamiento horizontal */
   overflow-y: auto; /* Permite desplazamiento vertical cuando es necesario */

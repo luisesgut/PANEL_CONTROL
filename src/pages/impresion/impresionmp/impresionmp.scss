@@ -1,0 +1,84 @@
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  .impresion-container-mp {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: #ffffff;
+    padding: 20px;
+  }
+  
+  .impresion-card-mp {
+    background-color: #d1e0e5;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px; /* Máximo ancho para pantallas grandes */
+    margin: auto; /* Centra horizontalmente */
+  }
+  
+  .impresion-form-mp {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr; /* En pantallas pequeñas, todo en una sola columna */
+    }
+  }
+  
+  .impresion-button-mp {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  
+  .mp-modal-content {
+    width: 90%;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mp-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .mp-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .mp-modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espacio entre el selector de impresora y el botón */
+  }
+  
+  .button-back {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+  }
+  
+  .generate-button {
+    background-color: #46707e;
+    color: white;
+  
+    &:hover {
+      background-color: #3b5c6b;
+    }
+  }

@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { Box, Typography, IconButton, Button, Modal, TextField, Grid, Autocomplete } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar,GridRowSelectionModel } from '@mui/x-data-grid';
 import './registroinventarios.scss';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'; 
-import DeleteIcon from '@mui/icons-material/Delete'; 
+import DeleteIcon from '@mui/icons-material/Delete';
+import Swal from 'sweetalert2'; 
+
+interface InventarioRegistro {
+  id: number;
+  fechaInventario: string;
+  formatoEtiqueta: string;
+  operador: string;
+  ubicacion: string;
+}
 
 const RegistroInventarios: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -16,7 +25,8 @@ const RegistroInventarios: React.FC = () => {
   const [operator, setOperator] = useState('');
   const [location, setLocation] = useState('');
   const [excelFile, setExcelFile] = useState<File | null>(null);
-  const [records, setRecords] = useState([]);
+  const [records, setRecords] = useState<InventarioRegistro[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]); // Estado para guardar las filas seleccionadas
   const navigate = useNavigate();
 
   const handleOpenModal = () => setOpenModal(true);
@@ -26,25 +36,157 @@ const RegistroInventarios: React.FC = () => {
     setExcelFile(event.target.files ? event.target.files[0] : null);
   };
 
-  const handleLoadRecords = () => {
-    // Lógica para cargar registros basada en la fecha seleccionada
-  };
+  const handleLoadRecords = async () => {
+    if (!date) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Por favor, selecciona una fecha.',
+      });
+      return;
+    }
 
-  const handleCreateRecord = () => {
-    // Lógica para crear un nuevo registro de inventario
-  };
-
-  const downloadFile = async (fileId: string) => {
     try {
-      const response = await axios.get(`tu_endpoint_para_descargar/${fileId}`, {
-        responseType: 'blob', // Esto asegura que el archivo se maneje correctamente
+      const response = await axios.get(`http://172.16.10.31/api/InventarioRegistros?fecha=${date}`);
+      setRecords(response.data);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Registros cargados exitosamente.',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al cargar los registros.',
+      });
+      console.error('Error al cargar los registros:', error);
+    }
+  };
+
+  const handleCreateRecord = async () => {
+    if (!date || !inventoryType || !operator || !location || !excelFile) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Por favor, completa todos los campos y selecciona un archivo.',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('fechaInventario', date);
+    formData.append('formatoEtiqueta', inventoryType);
+    formData.append('operador', operator);
+    formData.append('ubicacion', location);
+    formData.append('nombreArchivo', excelFile.name);
+    formData.append('excelArchivo', excelFile);
+
+    try {
+      const response = await axios.post('http://172.16.10.31/api/InventarioRegistros', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      const fileName = response.headers['content-disposition'].split('filename=')[1]; // Obtén el nombre del archivo
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Registro de inventario creado exitosamente.',
+      });
+
+      handleCloseModal();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al crear el registro.',
+      });
+
+      console.error('Error al crear el registro de inventario:', error);
+    }
+  };
+
+  const downloadFile = async (fileId: number) => {
+    try {
+      const response = await axios.get(`http://172.16.10.31/api/InventarioRegistros/${fileId}/download`, {
+        responseType: 'blob',
+      });
+  
+      const contentDisposition = response.headers['content-disposition'];
+      const fileName = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.trim()
+        : `archivo_${fileId}.xlsx`;
+  
       saveAs(response.data, fileName);
     } catch (error) {
       console.error('Error al descargar el archivo:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al descargar el archivo.',
+      });
     }
+  };
+
+  // Nueva función para descargar múltiples archivos
+  const downloadSelectedFiles = async () => {
+    if (selectedIds.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Por favor, selecciona al menos un registro para descargar.',
+      });
+      return;
+    }
+
+    try {
+      // Descargar archivos uno por uno
+      for (const id of selectedIds) {
+        await downloadFile(id);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Archivos descargados exitosamente.',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al descargar los archivos.',
+      });
+    }
+  };
+
+  const deleteRecord = async (id: number) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esto.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`http://172.16.10.31/api/InventarioRegistros/${id}`);
+          Swal.fire('Eliminado', 'El registro ha sido eliminado.', 'success');
+          setRecords((prevRecords) => prevRecords.filter(record => record.id !== id));
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un problema al eliminar el registro.',
+          });
+          console.error('Error al eliminar el registro:', error);
+        }
+      }
+    });
   };
 
   return (
@@ -80,11 +222,30 @@ const RegistroInventarios: React.FC = () => {
           <Button variant="contained" onClick={handleOpenModal} className='add-button'>
             Crear Registro de Inventario
           </Button>
+          
+          {/* Botón para descargar archivos seleccionados */}
+          {selectedIds.length > 0 && (
+            <Button 
+              variant="contained" 
+              onClick={downloadSelectedFiles} 
+              className='download-selected-button'
+              sx={{
+                marginLeft: 2, // Puedes ajustar el espaciado si es necesario
+                backgroundColor: '#46707e',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#3b5c6b',
+                },
+              }}
+            >
+              Descargar Archivos Seleccionados
+            </Button>
+          )}
         </Box>
       </Box>
 
       <Modal open={openModal} onClose={handleCloseModal}>
-        <Box className='modal-content'>
+      <Box className='modal-content'>
           <Typography variant="h6" className='modal-header'>Crear Registro de Inventario</Typography>
           <Box className='modal-body' sx={{ marginTop: '20px' }}>
             <Grid container spacing={2}>
@@ -116,9 +277,18 @@ const RegistroInventarios: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={['RA-L1', 'RA-L2', 'RB-L1', 'RB-L2', 'RC-L1', 'RC-L2', 'RD-L1', 'RD-L2','RE-L1','RE-L2', 'RF-L1','RF-L2', 'RG-L1','RG-L2', 'RH-L1','RH-L2','RI-L1','RI-L2','PASILLO 1','PASILLO 2', 'PASILLO 3','PASILLO 4', 'PASILLO 5','PASILLO 6', 'PASILLO 7','PASILLO 8', 'PASILLO 9', 'CORTINA 1','CORTINA 2', 'CORTINA 3','CORTINA 4', 'CORTINA 5','CORTINA 6','CORTINA 7','CORTINA 8']}
+                options={[
+                  'PT1-C01', 'PT1-C02', 'PT1-C03', 'PT1-C04', 'PT1-C05', 'PT1-C06', 
+                  'PT1-C07', 'PT1-C08', 'PT1-EMBARQUES', 'PT1-PAS01', 'PT1-PAS04', 
+                  'PT1-PAS05', 'PT1-PAS06', 'PT1-PAS08', 'PT1-RAA-L1', 'PT1-RB-L1', 
+                  'PT1-RB-L2', 'PT1-RD-L1', 'PT1-RD-L2', 'PT1-RE-L1', 'PT1-RE-L2', 
+                  'PT1-REPROCESOS', 'PT1-RF-L1', 'PT1-RF-L2', 'PT1-RG-L1', 'PT1-RG-L2', 
+                  'PT1-RH-L1', 'PT1-RH-L2', 'PT1-RR-L1', 'PT1-RR-L2', 'PT1-RS-L1', 
+                  'PT1-RS-L2', 'PT1-RU-L1', 'PT1-RU-L2', 'PT1-RV-L1', 'PT1-RV-L2', 
+                  'PT1-RZ-L1', 'PT1-RZ-L2', 'PT1-UBICACIÓN-DE-SISTEMA'
+                ]}
                 value={location}
-                onChange={(event, newValue) => setLocation(newValue || '')} 
+                onChange={(event, newValue) => setLocation(newValue || '')}
                 renderInput={(params) => (
                   <TextField {...params} label="Ubicación" fullWidth />
                 )}
@@ -191,12 +361,12 @@ const RegistroInventarios: React.FC = () => {
       <Box className='data-grid-container'>
         <DataGrid
           columns={[
-            { field: 'date', headerName: 'Fecha', width: 150 },
-            { field: 'inventoryType', headerName: 'Formato', width: 150 },
-            { field: 'operator', headerName: 'Operador', width: 200 },
-            { field: 'location', headerName: 'Ubicación', width: 150 },
+            { field: 'fechaInventario', headerName: 'Fecha', width: 150 },
+            { field: 'formatoEtiqueta', headerName: 'Formato', width: 150 },
+            { field: 'operador', headerName: 'Operador', width: 200 },
+            { field: 'ubicacion', headerName: 'Ubicación', width: 150 },
             {
-              field: 'excelFile',
+              field: 'id',
               headerName: 'Archivo',
               width: 150,
               renderCell: (params) => (
@@ -205,8 +375,25 @@ const RegistroInventarios: React.FC = () => {
                 </Button>
               ),
             },
+            {
+              field: 'delete',
+              headerName: 'Acciones',
+              width: 150,
+              renderCell: (params) => (
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => deleteRecord(params.row.id)}
+                  startIcon={<DeleteIcon />}
+                >
+                  Eliminar
+                </Button>
+              ),
+            },
           ]}
           rows={records}
+          checkboxSelection // Habilita la selección múltiple
+          onRowSelectionModelChange={(ids: GridRowSelectionModel) => setSelectedIds(ids as number[])} // Corrige el evento y añade el tipo adecuado
           disableColumnFilter
           disableDensitySelector
           disableColumnSelector
@@ -216,6 +403,25 @@ const RegistroInventarios: React.FC = () => {
           pageSizeOptions={[5, 10, 25, 50, 100]}
         />
       </Box>
+
+      {/* Botón para descargar archivos seleccionados */}
+      {selectedIds.length > 0 && (
+        <Button 
+          variant="contained" 
+          onClick={downloadSelectedFiles} 
+          className='download-selected-button'
+          sx={{
+            marginTop: 2,
+            backgroundColor: '#46707e',
+            color: 'white',
+            '&:hover': {
+              backgroundColor: '#3b5c6b',
+            },
+          }}
+        >
+          Descargar Archivos Seleccionados
+        </Button>
+      )}
     </div>
   );
 };

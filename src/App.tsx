@@ -32,11 +32,11 @@ import ModulosImpresion from './pages/impresion/modulosimpresion/ModulosImpresio
 import ModulosRegistros from './pages/registros/modulosregistros/ModulosRegistros';
 import RegistroInsumos from './pages/registros/registroinsumos/RegistroInsumos';
 import RegistroInventarios from './pages/registros/registroinventario/RegistroInventarios';
+import ImpresionMP from './pages/impresion/impresionmp/ImpresionMP';
 
 
 
 const Entradas = () => <div>Entradas</div>;
-const ImpresionMP = () => <div>Impresion Materia Prima</div>;
 const Salidas = () => <div>Salidas</div>;
 const Ubicacion = () => <div>Ubicación</div>;
 const Antenas = () => <div>Antenas</div>;
