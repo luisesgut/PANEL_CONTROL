@@ -5,12 +5,13 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import './impresionmp.scss';
 import Swal from 'sweetalert2';
+import axios, { AxiosError } from 'axios';
 
-// Interfaces
-interface Producto {
+
+interface Operador {
   id: number;
-  nombre: string;
-  tipo: string;
+  numNomina: string;
+  nombreCompleto: string;
 }
 
 interface Printer {
@@ -18,47 +19,63 @@ interface Printer {
   ip: string;
 }
 
-// Mapeo de los productos con los campos que requiere cada uno
+interface Producto {
+  claveProducto: string;
+  nombreProducto: string;
+  unidad: string;
+}
 const productosMap: { [key: string]: Producto[] } = {
   Bobina: [
-    { id: 1, nombre: 'Bobina Natural', tipo: 'Bobina' },
-    { id: 2, nombre: 'Bobina Metalizada', tipo: 'Bobina' }
   ],
   Caja: [
-    { id: 3, nombre: 'Caja de Vaso', tipo: 'Caja' },
-    { id: 4, nombre: 'Caja de Zipper', tipo: 'Caja' }
+  ],
+  'caja-vaso': [
   ],
   Zipper: [
-    { id: 5, nombre: 'Zipper A', tipo: 'Zipper' },
-    { id: 6, nombre: 'Zipper B', tipo: 'Zipper' }
   ],
-  'Bobina de Cinta': [
-    { id: 7, nombre: 'Bobina de Cinta A', tipo: 'Bobina de Cinta' },
-    { id: 8, nombre: 'Bobina de Cinta B', tipo: 'Bobina de Cinta' }
+  'bobina-cinta': [
   ]
 };
-
+// Campos dinámicos mapeados para cada tipo de producto
 const camposMap: { [key: string]: string[] } = {
-  Bobina: ['Medida', 'Calibre', 'Peso', 'Fecha Producción', 'Código Bobina'],
-  Caja: ['Piezas', 'Tipo de Vaso'],
-  Zipper: ['Código', 'Tipo de Zipper'],
-  'Bobina de Cinta': ['Tipo de Bobina', 'Cantidad']
+  Bobina: ['Medida', 'Calibre', 'Fecha Producción', 'Piezas'],
+  Caja: ['Piezas', 'Tipo de Caja'],
+  'caja-vaso': ['Piezas', 'Tipo de Vaso'],
+  Zipper: ['Tipo de Zipper', 'Piezas'],
+  'bobina-cinta': ['Tipo de Bobina', 'Piezas']
 };
 
 const ImpresionMP: React.FC = () => {
   const navigate = useNavigate();
-  const [tiposProducto, setTiposProducto] = useState<string[]>([]);
-  const [selectedTipo, setSelectedTipo] = useState<string | null>(null); // Tipo de producto dinámico
+  const [tiposProducto] = useState<string[]>(['Bobina', 'Caja', 'caja-vaso', 'Zipper', 'bobina-cinta']);
+  const [selectedTipo, setSelectedTipo] = useState<string | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [selectedProductoPT, setSelectedProductoPT] = useState<string | null>(null); // Código de producto
-  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null); // Producto seleccionado
+  const [selectedProductoPT, setSelectedProductoPT] = useState<Producto | null>(null);
+  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [camposDinamicos, setCamposDinamicos] = useState<{ [key: string]: string }>({});
-  const [fechaProduccion, setFechaProduccion] = useState<string>(''); // Estado para la fecha de producción
+  const [fechaProduccion, setFechaProduccion] = useState<string>('');
   const [openModal, setOpenModal] = useState(false);
-  const [trazabilidad, setTrazabilidad] = useState<string>('');
   const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
   const [consecutivo, setConsecutivo] = useState<number>(1);
-
+  const [operadores, setOperadores] = useState<Operador[]>([]);
+  const [selectedOperador, setSelectedOperador] = useState<Operador | null>(null);
+  const [numPiezas, setNumPiezas] = useState<number>(0);  // Estado para piezas
+  const [codigosBobina, setCodigosBobina] = useState<string[]>([]);  // Estado para códigos de bobina
+  const [pesosBobina, setPesosBobina] = useState<string[]>([]);  // Estado para pesos de bobina
+  const [bobinaActual, setBobinaActual] = useState<number>(0);  // Estado para controlar la bobina actual
+  const [trazabilidad, setTrazabilidad] = useState<string[]>([]); // Cambiar a arreglo de string
+  const handleCodigoBobinaChange = (index: number, valor: string) => {
+    const nuevosCodigos = [...codigosBobina];
+    nuevosCodigos[index] = valor;
+    setCodigosBobina(nuevosCodigos);
+  };
+  
+  const handlePesoBobinaChange = (index: number, valor: string) => {
+    const nuevosPesos = [...pesosBobina];
+    nuevosPesos[index] = valor;
+    setPesosBobina(nuevosPesos);
+  };
+  
   // Opciones de impresoras
   const printerOptions = [
     { name: "Impresora 1", ip: "172.16.20.56" },
@@ -67,41 +84,45 @@ const ImpresionMP: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Cargar los tipos de producto desde el mapeo
-    setTiposProducto(Object.keys(productosMap));
+
+    // Llamada para obtener los operadores usando el endpoint
+    axios.get<Operador[]>('http://172.16.10.31/api/Operator/all-operators')
+      .then(response => {
+        setOperadores(response.data);
+      })
+      .catch(error => {
+        console.error('Error al obtener operadores:', error);
+      });
   }, []);
 
-  // Cargar productos según el tipo de producto seleccionado
   useEffect(() => {
-    if (selectedTipo) {
-      setProductos(productosMap[selectedTipo] || []);
-      setSelectedProductoPT(null); // Limpiar la selección del código
-      setSelectedProducto(null); // Limpiar la selección del nombre
-      setCamposDinamicos({}); // Limpiar campos dinámicos al cambiar de tipo de producto
-    }
-  }, [selectedTipo]);
+    fetch('http://172.16.10.31/api/ProductosMP')
+      .then(response => response.json())
+      .then(data => setProductos(data))
+      .catch(error => console.error('Error fetching data: ', error));
+  }, []);
 
-  // Cargar producto basado en el código de PT seleccionado
   useEffect(() => {
     if (selectedProductoPT) {
-      const productoEncontrado = productos.find(producto => producto.id.toString() === selectedProductoPT);
-      setSelectedProducto(productoEncontrado || null);
+      const productoEncontrado = productos.find(producto => producto.claveProducto === selectedProductoPT.claveProducto);
+      setSelectedProducto(productoEncontrado || null); // Actualiza el estado de selectedProducto
+    } else {
+      setSelectedProducto(null); // Resetea si no hay código de producto seleccionado
     }
-  }, [selectedProductoPT]);
+  }, [selectedProductoPT, productos]);
 
-  // Validación y generación de la etiqueta
   const handleGenerateEtiqueta = () => {
-    if (!selectedProducto) {
+    if (!selectedProducto || !selectedOperador) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Por favor, selecciona un producto.',
+        text: 'Por favor, selecciona un producto y un operador.',
       });
       return;
     }
-
-    generateTrazabilidad(); // Generar la trazabilidad
+    generateTrazabilidad();
     setOpenModal(true);
+    setBobinaActual(0); 
   };
 
   const handleChangeDinamico = (campo: string, valor: string) => {
@@ -109,22 +130,303 @@ const ImpresionMP: React.FC = () => {
       ...prev,
       [campo]: valor
     }));
+    if (campo === 'Piezas') {
+      const num = parseInt(valor) || 0;
+      setNumPiezas(num);
+      setCodigosBobina(Array(num).fill(''));  
+      setPesosBobina(Array(num).fill(''));    
+    }
   };
 
-  const generateTrazabilidad = () => {
-    const base = '1'; // Indicativo de materia prima (MP)
-    const productoId = selectedProducto ? selectedProducto.id.toString().padStart(3, '0') : '000';
-    const datos = Object.values(camposDinamicos).join('').replace(/\D/g, ''); // Concatena y limpia los valores
-    const fullTrazabilidad = `${base}${productoId}${datos}`.slice(0, 13); // Máximo 13 caracteres antes del consecutivo
-    const consecutivoStr = consecutivo.toString().padStart(3, '0'); // Consecutivo de 3 dígitos
-    setTrazabilidad(fullTrazabilidad + consecutivoStr);
+  const generateTrazabilidad = async () => {
+    if (!selectedProducto || !selectedTipo) return;
+  
+    const base = '1';
+  
+    // Extraer los últimos 3 dígitos del claveProducto
+    const productoId = selectedProducto.claveProducto.slice(-3); // Últimos 3 dígitos de claveProducto
+  
+    // Obtener la fecha actual en formato DDMMYY
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');  // Día
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');  // Mes (0 es enero)
+    const year = today.getFullYear().toString().slice(-2);  // Últimos 2 dígitos del año
+    const fecha = `${day}${month}${year}`;  // Formato DDMMYY
+  
+    // Generar el prefijo de la trazabilidad (1 + productoId + fecha)
+    const prefixTrazabilidad = `${base}${productoId}${fecha}`; // Ejemplo: 1185230924
+  
+    try {
+      // Obtener registros de trazabilidad desde la API
+      const response = await axios.get('http://172.16.10.31/api/ProdEtiquetasRFIDMP');
+      const registros = response.data;
+  
+      // Filtrar registros que coincidan con el prefijo de trazabilidad
+      const matchingRegistros = registros.filter(
+        (registro: { trazabilidad: string }) => registro.trazabilidad.startsWith(prefixTrazabilidad)
+      );
+  
+      let nextConsecutivo = 1;
+      if (matchingRegistros.length > 0) {
+        const ultimos3Digitos = matchingRegistros.map((registro: { trazabilidad: string }) =>
+          parseInt(registro.trazabilidad.slice(-3), 10)
+        );
+        const maxConsecutivo = Math.max(...ultimos3Digitos);
+        nextConsecutivo = maxConsecutivo + 1;
+      }
+  
+      // Verificar si el tipo de producto es 'Bobina'
+      if (selectedTipo.toLowerCase() === 'bobina') {
+        const piezas = parseInt(camposDinamicos['Piezas'] || '0');
+        const trazabilidadesGeneradas = [];
+  
+        // Generar tantas trazabilidades como piezas, asegurando que el consecutivo sea correcto
+        for (let i = 0; i < piezas; i++) {
+          const consecutivoStr = (nextConsecutivo + i).toString().padStart(3, '0');  // Consecutivo de 3 dígitos
+          const nuevaTrazabilidad = `${prefixTrazabilidad}${consecutivoStr}`;  // Completar la trazabilidad
+  
+          if (nuevaTrazabilidad.length !== 13) {
+            Swal.fire('Error', 'La trazabilidad generada no tiene exactamente 13 dígitos.', 'error');
+            return;
+          }
+  
+          trazabilidadesGeneradas.push(nuevaTrazabilidad);
+        }
+  
+        setTrazabilidad(trazabilidadesGeneradas);  // Establecer las trazabilidades generadas
+      } else {
+        // Para productos diferentes a Bobina, generar solo una trazabilidad
+        const consecutivoStr = nextConsecutivo.toString().padStart(3, '0');  // Consecutivo de 3 dígitos
+        const trazabilidadUnica = `${prefixTrazabilidad}${consecutivoStr}`;  // Completar la trazabilidad
+  
+        if (trazabilidadUnica.length !== 13) {
+          Swal.fire('Error', 'La trazabilidad generada no tiene exactamente 13 dígitos.', 'error');
+          return;
+        }
+  
+        setTrazabilidad([trazabilidadUnica]);  // Solo una trazabilidad
+      }
+  
+    } catch (error) {
+      console.error('Error al obtener los registros de trazabilidad:', error);
+      Swal.fire('Error', 'Hubo un problema al generar la trazabilidad.', 'error');
+    }
   };
 
   const handleCloseModal = () => setOpenModal(false);
 
+  const handleConfirmEtiqueta = async () => {
+    if (!selectedPrinter) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Impresora no seleccionada',
+        text: 'Por favor, selecciona una impresora.',
+      });
+      return;
+    }
+  
+    if (!selectedProducto || !selectedOperador || !Array.isArray(trazabilidad)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Datos incompletos',
+        text: 'Por favor, selecciona un producto, operador y genera la trazabilidad.',
+      });
+      return;
+    }
+  
+    // Formatear la fecha de producción para el envío
+    const formattedDate = fechaProduccion ? new Date(fechaProduccion).toISOString() : new Date().toISOString();
+  
+    // Usar el tipo de producto directamente desde el mapeo y normalizar el texto a minúsculas
+    const tipoProductoNormalizado = selectedTipo?.toLowerCase();
+  
+    let url = '';
+    let data: any;
+  
+    switch (tipoProductoNormalizado) {
+      case 'bobina':
+        // Impresión múltiple para bobina
+        for (let i = 0; i < trazabilidad.length; i++) {
+          const codigoBobinaUnico = codigosBobina[i];
+          const pesoUnico = parseFloat(pesosBobina[i] || '0');
+  
+          if (!codigoBobinaUnico || pesoUnico <= 0) {
+            Swal.fire('Error', `El código o peso de la bobina ${i + 1} es inválido.`, 'error');
+            return;
+          }
+  
+          data = {
+            tipoProducto: 'BOBINA',
+            claveProducto: selectedProducto.claveProducto.toString(),
+            productoNombre: selectedProducto.nombreProducto.toUpperCase(),
+            claveOperador: selectedOperador.numNomina,
+            medida: camposDinamicos['Medida'] || '',
+            calibre: camposDinamicos['Calibre'] || '',
+            piezas: numPiezas,
+            peso: pesoUnico,
+            fechaProduccion: formattedDate,
+            codigoBobina: codigoBobinaUnico,
+            trazabilidad: trazabilidad[i],
+            rfid: `000${trazabilidad[i]}`,
+            status: '2',
+          };
+  
+          url = `http://172.16.10.31/api/ProdEtiquetasRFIDMP/bobina?ip=${selectedPrinter.ip}`;
+  
+          try {
+            await axios.post(url, data, {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+            Swal.fire('Éxito', `Etiqueta para la bobina ${i + 1} generada correctamente.`, 'success');
+          } catch (error) {
+            console.error(`Error al generar la etiqueta para la bobina ${i + 1}:`, error);
+            Swal.fire('Error', `No se pudo generar la etiqueta para la bobina ${i + 1}.`, 'error');
+            return;
+          }
+        }
+        break;
+  
+      case 'caja':
+        data = {
+          tipoProducto: 'CAJA',
+          claveProducto: selectedProducto.claveProducto.toString(),
+          productoNombre: selectedProducto.nombreProducto.toUpperCase(),
+          claveOperador: selectedOperador.numNomina,
+          tipoCaja: (camposDinamicos['Tipo de Caja'] || '').toUpperCase(), // Ajuste aquí para acceder al campo correcto
+          piezas: parseInt(camposDinamicos['Piezas'] || '0'),
+          trazabilidad: trazabilidad[0],
+          rfid: `000${trazabilidad[0]}`,
+          status: '2',
+        };
+  
+        url = `http://172.16.10.31/api/ProdEtiquetasRFIDMP/caja?ip=${selectedPrinter.ip}`;
+  
+        try {
+          console.log('Datos que se envían a la API:', data);  // Añadir log para verificar datos
+          await axios.post(url, data, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          Swal.fire('Éxito', `Etiqueta para Caja generada correctamente.`, 'success');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error('Error al generar la etiqueta para Caja:', error.response?.data || error.message);
+          } else {
+            console.error('Error desconocido:', error);
+          }
+          Swal.fire('Error', `No se pudo generar la etiqueta para Caja.`, 'error');
+        }
+        break;
+  
+      case 'caja-vaso':
+        data = {
+          tipoProducto: 'CAJA VASO',
+          claveProducto: selectedProducto.claveProducto.toString(),
+          productoNombre: selectedProducto.nombreProducto.toUpperCase(),
+          claveOperador: selectedOperador.numNomina,
+          tipoVaso: (camposDinamicos['Tipo de Vaso'] || '').toUpperCase(), // Ajuste aquí
+          piezas: parseInt(camposDinamicos['Piezas'] || '0'),
+          trazabilidad: trazabilidad[0],
+          rfid: `000${trazabilidad[0]}`,
+          status: '2',
+        };
+  
+        url = `http://172.16.10.31/api/ProdEtiquetasRFIDMP/caja-vaso?ip=${selectedPrinter.ip}`;
+  
+        try {
+          await axios.post(url, data, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          Swal.fire('Éxito', `Etiqueta para Caja Vaso generada correctamente.`, 'success');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error('Error al generar la etiqueta para Caja Vaso:', error.response?.data || error.message);
+          } else {
+            console.error('Error desconocido:', error);
+          }
+          Swal.fire('Error', `No se pudo generar la etiqueta para Caja Vaso.`, 'error');
+        }
+        break;
+  
+      case 'zipper':
+        data = {
+          tipoProducto: 'ZIPPER',
+          claveProducto: selectedProducto.claveProducto.toString(),
+          productoNombre: selectedProducto.nombreProducto.toUpperCase(),
+          claveOperador: selectedOperador.numNomina,
+          tipoZipper: (camposDinamicos['Tipo de Zipper'] || '').toUpperCase(), // Ajuste aquí para el campo "Tipo de Zipper"
+          piezas: parseInt(camposDinamicos['Piezas'] || '0'),
+          trazabilidad: trazabilidad[0],
+          rfid: `000${trazabilidad[0]}`,
+          status: '2',
+        };      
+  
+        url = `http://172.16.10.31/api/ProdEtiquetasRFIDMP/zipper?ip=${selectedPrinter.ip}`;
+  
+        try {
+          await axios.post(url, data, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          Swal.fire('Éxito', `Etiqueta para Zipper generada correctamente.`, 'success');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error('Error al generar la etiqueta para Zipper:', error.response?.data || error.message);
+          } else {
+            console.error('Error desconocido:', error);
+          }
+          Swal.fire('Error', `No se pudo generar la etiqueta para Zipper.`, 'error');
+        }
+        break;
+  
+      case 'bobina-cinta':
+        data = {
+          tipoProducto: 'BOBINA CINTA',
+          claveProducto: selectedProducto.claveProducto.toString(),
+          productoNombre: selectedProducto.nombreProducto.toUpperCase(),
+          claveOperador: selectedOperador.numNomina,
+          tipoBobina: (camposDinamicos['Tipo de Bobina'] || '').toUpperCase(), // Ajuste aquí para el campo "Tipo de Bobina"
+          piezas: parseInt(camposDinamicos['Piezas'] || '0'),
+          trazabilidad: trazabilidad[0],
+          rfid: `000${trazabilidad[0]}`,
+          status: '2',
+        };
+  
+        url = `http://172.16.10.31/api/ProdEtiquetasRFIDMP/bobina-cinta?ip=${selectedPrinter.ip}`;
+  
+        try {
+          await axios.post(url, data, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          Swal.fire('Éxito', `Etiqueta para Bobina Cinta generada correctamente.`, 'success');
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error('Error al generar la etiqueta para Bobina Cinta:', error.response?.data || error.message);
+          } else {
+            console.error('Error desconocido:', error);
+          }
+          Swal.fire('Error', `No se pudo generar la etiqueta para Bobina Cinta.`, 'error');
+        }
+        break;
+  
+      default:
+        Swal.fire('Error', 'Tipo de producto no encontrado.', 'error');
+        return;
+    }
+  
+    handleCloseModal();
+  };
+
   return (
     <div>
-      {/* Botón de regreso en el lado izquierdo */}
       <Box className='top-container-mp' sx={{ display: 'flex', justifyContent: 'flex-start', padding: '16px' }}>
         <IconButton onClick={() => navigate('/ModulosImpresion')} className='button-back'>
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
@@ -137,8 +439,6 @@ const ImpresionMP: React.FC = () => {
             GENERACIÓN DE ETIQUETA DE MATERIA PRIMA
           </Typography>
           <Box className='impresion-form-mp'>
-
-            {/* Autoselect para Tipo de Producto */}
             <Autocomplete
               value={selectedTipo}
               onChange={(event, newValue) => setSelectedTipo(newValue || null)}
@@ -146,20 +446,18 @@ const ImpresionMP: React.FC = () => {
               renderInput={(params) => <TextField {...params} label="Tipo de Producto" fullWidth />}
             />
 
-            {/* Autoselect para Código de Producto (PT) */}
             <Autocomplete
-              value={selectedProductoPT}
-              onChange={(event, newValue) => setSelectedProductoPT(newValue || null)}
-              options={productos.map(producto => producto.id.toString())} // Convertir IDs de productos a string
+              value={selectedProductoPT} // selectedProductoPT es un objeto Producto
+              onChange={(event, newValue) => setSelectedProductoPT(newValue)} // Asignar el objeto Producto seleccionado
+              options={productos}
+              getOptionLabel={(option) => `${option.claveProducto} - ${option.nombreProducto}`} // Mostrar claveProducto y nombreProducto
               renderInput={(params) => <TextField {...params} label="Código de Producto (PT)" fullWidth />}
             />
-
-            {/* El nombre del producto cargado automáticamente */}
             <TextField
               label="Nombre del Producto"
-              value={selectedProducto?.nombre || ''}
+              value={selectedProducto?.nombreProducto || ''} // Aquí se muestra el nombre del producto si está disponible
               fullWidth
-              InputProps={{ readOnly: true }}
+              InputProps={{ readOnly: true }} // El campo es de solo lectura
             />
 
             {/* Cargar campos dinámicos en base al tipo de producto */}
@@ -169,9 +467,9 @@ const ImpresionMP: React.FC = () => {
                   key={campo}
                   fullWidth
                   label={campo}
-                  type="date" // Campo de tipo fecha
+                  type="date"
                   value={fechaProduccion}
-                  onChange={(event) => setFechaProduccion(event.target.value)} // Guardar la fecha seleccionada
+                  onChange={(event) => setFechaProduccion(event.target.value)}
                   InputLabelProps={{ shrink: true }}
                   variant="outlined"
                 />
@@ -179,14 +477,44 @@ const ImpresionMP: React.FC = () => {
                 <TextField
                   key={campo}
                   fullWidth
-                  label={campo} // Mostrar el campo como la etiqueta
-                  value={camposDinamicos[campo] || ''} // Usar el campo como clave en camposDinamicos
-                  onChange={(event) => handleChangeDinamico(campo, event.target.value)} // Cambiar el valor de los campos dinámicos
+                  label={campo}
+                  value={camposDinamicos[campo] || ''}
+                  onChange={(event) => handleChangeDinamico(campo, event.target.value)}
                   variant="outlined"
                 />
               )
             ))}
 
+            {/* Mostrar los TextFields para los códigos de bobina y pesos */}
+            {selectedTipo?.toLowerCase() === 'bobina' && (
+              <>
+                {Array.from({ length: numPiezas }).map((_, index) => (
+                  <Box key={index} sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                    <TextField
+                      label={`Código Bobina ${index + 1}`}
+                      value={codigosBobina[index]}
+                      onChange={(event) => handleCodigoBobinaChange(index, event.target.value)}
+                      fullWidth
+                    />
+                    <TextField
+                      label={`Peso Bobina ${index + 1}`}
+                      value={pesosBobina[index]}
+                      onChange={(event) => handlePesoBobinaChange(index, event.target.value)}
+                      fullWidth
+                    />
+                  </Box>
+                ))}
+              </>
+            )}
+
+            {/* Autocomplete para Operador */}
+            <Autocomplete
+              value={selectedOperador}
+              onChange={(event, newValue) => setSelectedOperador(newValue || null)}
+              options={operadores}
+              getOptionLabel={(option) => `${option.numNomina} - ${option.nombreCompleto}`}
+              renderInput={(params) => <TextField {...params} label="Operador" fullWidth />}
+            />
           </Box>
 
           <Box className='impresion-button-mp'>
@@ -215,6 +543,7 @@ const ImpresionMP: React.FC = () => {
           justifyContent: 'center',
           alignItems: 'center'
         }}
+        style={{zIndex: 1050}}
       >
         <Paper 
           className="mp-modal-content"
@@ -228,23 +557,22 @@ const ImpresionMP: React.FC = () => {
           }}
         >
           <Box className="mp-modal-header">
-            <Typography variant="h6">Vista Previa de la Etiqueta</Typography>
+            <Typography variant="h6">Vista Previa de la Bobina {bobinaActual + 1}</Typography>
             <IconButton onClick={handleCloseModal}>
               <CloseIcon />
             </IconButton>
           </Box>
-          <Divider sx={{ my: 2 }} />  {/* Línea divisoria con margen vertical */}
+          <Divider sx={{ my: 2 }} />
           <Box className="mp-modal-body">
-            <Typography><strong>Producto:</strong> {selectedProducto?.nombre}</Typography>
-            {Object.entries(camposDinamicos).map(([campo, valor]) => (
-              <Typography key={campo}><strong>{campo}:</strong> {valor}</Typography>
-            ))}
+            <Typography><strong>Producto:</strong> {selectedProducto?.nombreProducto}</Typography>
+            <Typography><strong>Código Bobina:</strong> {codigosBobina[bobinaActual]}</Typography>
+            <Typography><strong>Peso Bobina:</strong> {pesosBobina[bobinaActual]}</Typography>
             {fechaProduccion && (
               <Typography><strong>Fecha de Producción:</strong> {fechaProduccion}</Typography>
             )}
             <Typography><strong>Trazabilidad:</strong> {trazabilidad}</Typography>
           </Box>
-          <Divider sx={{ my: 2 }} />  {/* Línea divisoria con margen vertical */}
+          <Divider sx={{ my: 2 }} />
 
           <Box className="mp-modal-footer" sx={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
           <Autocomplete
@@ -256,17 +584,16 @@ const ImpresionMP: React.FC = () => {
               <TextField 
                 {...params} 
                 label="Impresora" 
-                sx={{ width: '38%' }}  // Asegura que ocupe todo el ancho disponible
+                sx={{ width: '38%' }}
               />
             )}
-            sx={{ width: '100%', maxWidth: '600px' }}  // Ajusta el ancho del Autocomplete
+            sx={{ width: '100%', maxWidth: '600px' }}
           />
 
-            {/* Botón de generar */}
             <Button
               variant="contained"
               color="primary"
-              onClick={handleGenerateEtiqueta}
+              onClick={handleConfirmEtiqueta}
               sx={{
                 backgroundColor: '#46707e',
                 color: 'white',

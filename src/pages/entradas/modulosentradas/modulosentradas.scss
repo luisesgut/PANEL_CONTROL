@@ -1,0 +1,37 @@
+.modulos-entradas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh; // Makes sure it takes the full height of the viewport
+  width: 100vw; // Full width
+  padding: 20px;
+
+  .back-button {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+  }
+
+  .title {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: row; // Ensure buttons are in a row
+    justify-content: center;
+    align-items: center;
+    padding-top: 80px;
+    .custom-button {
+      min-width: 250px;
+      height: 250px;
+      background-color: #46707e;
+      color: white;
+      &:hover {
+        background-color: #3b5c6b;
+      }
+    }
+  }
+}

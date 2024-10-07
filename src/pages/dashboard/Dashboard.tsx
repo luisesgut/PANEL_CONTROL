@@ -9,16 +9,18 @@ import SatelliteIcon from '@mui/icons-material/Satellite';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import PrintIcon from '@mui/icons-material/Print';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const icons = [
   { icon: PrintIcon, label: 'IMPRESION', path: '/ModulosImpresion' },
-  { icon: ArrowUpwardIcon, label: 'ENTRADAS', path: '/entradas' },
+  { icon: ArrowUpwardIcon, label: 'ENTRADAS', path: '/ModulosEntradas' },
   { icon: ExitToAppIcon, label: 'SALIDAS', path: '/salidas' },
   { icon: LocationOnIcon, label: 'UBICACIÓN', path: '/ubicacion' },
   { icon: WebIcon, label: 'CONSULTAS', path: '/consultas' },
   { icon: AppRegistrationIcon, label: 'REGISTROS', path: '/ModulosRegistros' },
-  { icon: SatelliteIcon, label: 'ANTENAS', path: '/antenas' },
   { icon: LibraryBooksIcon, label: 'CATALOGOS', path: '/catalogos' },
+  { icon: SatelliteIcon, label: 'ANTENAS', path: 'http://172.16.10.31:90/', external: true },
+  { icon: SettingsIcon, label: 'CONFIGURACION', path: '/configuracion' },
 ];
 
 export const Dashboard: React.FC = () => {

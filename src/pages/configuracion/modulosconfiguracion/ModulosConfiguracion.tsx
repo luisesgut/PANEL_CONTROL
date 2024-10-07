@@ -1,28 +1,25 @@
 import * as React from 'react';
 import { Box, Grid, Typography, IconButton } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BioflexImage from '../../../../assets/bioflex.png';
-import DestinyImage from '../../../../assets/destiny.png'; 
-import QualityImage from '../../../../assets/quality.png';
-import ReymaImage from '../../../../assets/Reyma.png';
-import './modulosimpresion_produccion.scss';
+import RouterIcon from '@mui/icons-material/Router'; // Icon for Antenas
+import StorageIcon from '@mui/icons-material/Storage'; // Icon for Almacen
+import { Link } from 'react-router-dom';
+import './modulosconfiguracion.scss';
 
-const modules = [
-  { image: BioflexImage, label: 'BIOFLEX', path: '/ImpresionTarimaBFX' },
-  { image: DestinyImage, label: 'DESTINY', path: '/ImpresionTarimaDestiny' },
-  { image: QualityImage, label: 'QUALITY', path: '/ModulosImpresionQuality' },
-  { image: ReymaImage, label: 'VASO', path: '/ImpresionTarimaVaso' },
+const ConfiguracionModules = [
+  { icon: <StorageIcon sx={{ fontSize: 60 }} />, label: 'Configuracion Antenas Almacen', path: '/configuracion-antenas-almacen' },
+  { icon: <RouterIcon sx={{ fontSize: 60 }} />, label: 'Configuracion Antenas Embarques', path: '/configuracion-antenas-embarques' },
 ];
 
-const ModulosImpresion: React.FC = () => {
+const ModulosConfiguracion: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className='modulos-impresion'>
+    <div className='modulos-configuracion'>
       <Box sx={{ width: '100%', p: 1, position: 'relative' }}>
         <IconButton
-          onClick={() => navigate('/ModulosImpresion')}
+          onClick={() => navigate('/')}
           sx={{
             position: 'absolute',
             top: 8,
@@ -34,13 +31,13 @@ const ModulosImpresion: React.FC = () => {
         </IconButton>
         <Box sx={{ pt: 3, width: '100%', textAlign: 'center' }}>
           <Typography variant="h5" sx={{ mt: 3 }}> 
-            SELECCIONA EL FORMATO DE ETIQUETA QUE REQUIERES IMPRIMIR DE PRODUCTO TERMINADO
+            SELECCIONA EL MODULO DE CONFIGURACIÓN
           </Typography>
         </Box>
       </Box>
       <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
         <Grid container spacing={4} justifyContent="center">
-          {modules.map((item, index) => (
+          {ConfiguracionModules.map((item, index) => (
             <Grid item key={index} sx={{ display: 'flex', justifyContent: 'center' }}>
               <Link to={item.path} style={{ textDecoration: 'none' }}>
                 <Box
@@ -61,7 +58,7 @@ const ModulosImpresion: React.FC = () => {
                     mx: 2,
                   }}
                 >
-                  {item.image && <img src={item.image} alt={item.label} style={{ width: '50%', height: 'auto' }} />}
+                  {item.icon}
                   <Typography variant="h6" sx={{ mt: 2 }}>
                     {item.label}
                   </Typography>
@@ -75,4 +72,4 @@ const ModulosImpresion: React.FC = () => {
   );
 };
 
-export default ModulosImpresion;
+export default ModulosConfiguracion;

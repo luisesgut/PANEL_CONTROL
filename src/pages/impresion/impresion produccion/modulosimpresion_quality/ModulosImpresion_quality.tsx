@@ -2,27 +2,23 @@ import * as React from 'react';
 import { Box, Grid, Typography, IconButton } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import BioflexImage from '../../../../assets/bioflex.png';
-import DestinyImage from '../../../../assets/destiny.png'; 
+import WandWImage from '../../../../assets/w&w.png'; 
 import QualityImage from '../../../../assets/quality.png';
-import ReymaImage from '../../../../assets/Reyma.png';
 import './modulosimpresion_produccion.scss';
 
 const modules = [
-  { image: BioflexImage, label: 'BIOFLEX', path: '/ImpresionTarimaBFX' },
-  { image: DestinyImage, label: 'DESTINY', path: '/ImpresionTarimaDestiny' },
-  { image: QualityImage, label: 'QUALITY', path: '/ModulosImpresionQuality' },
-  { image: ReymaImage, label: 'VASO', path: '/ImpresionTarimaVaso' },
+  { image: QualityImage, label: 'QUALITY', path: '/ImpresionTarimaQuality' },
+  { image: WandWImage, label: 'WARNER & WARNER', path: '/ImpresionTarimaW&W' },
 ];
 
-const ModulosImpresion: React.FC = () => {
+const ModulosImpresion_Quality: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className='modulos-impresion'>
       <Box sx={{ width: '100%', p: 1, position: 'relative' }}>
         <IconButton
-          onClick={() => navigate('/ModulosImpresion')}
+          onClick={() => navigate('/ImpresionPT')}
           sx={{
             position: 'absolute',
             top: 8,
@@ -34,7 +30,7 @@ const ModulosImpresion: React.FC = () => {
         </IconButton>
         <Box sx={{ pt: 3, width: '100%', textAlign: 'center' }}>
           <Typography variant="h5" sx={{ mt: 3 }}> 
-            SELECCIONA EL FORMATO DE ETIQUETA QUE REQUIERES IMPRIMIR DE PRODUCTO TERMINADO
+            SELECCIONA EL FORMATO DE ETIQUETA QUE REQUIERES IMPRIMIR DE QUALITY
           </Typography>
         </Box>
       </Box>
@@ -75,4 +71,4 @@ const ModulosImpresion: React.FC = () => {
   );
 };
 
-export default ModulosImpresion;
+export default ModulosImpresion_Quality;

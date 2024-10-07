@@ -21,7 +21,7 @@ import ProductoQuality from './pages/catalogo/catalogoquality/CatalogoQuality';
 
 import Footer from './components/footer/Footer';
 import CatalogoVaso from './pages/catalogo/catalogovaso/CatalogoVaso';
-import MoudulosConsultas from './pages/impresion/reentarimado/modulos-reentarimado/MoudulosReentarimado';
+import MoudulosConsultas from './pages/consultas/moduloconsultas/MoudulosConsultas';
 import ConsultaBFX from './pages/consultas/consultasbfx/ConsultaBFX';
 import ConsultaDestiny from './pages/consultas/consultasdestiny/ConsultaDestiny';
 import ConsultaQuality from './pages/consultas/consultasquality/ConsultaQuality';
@@ -33,13 +33,19 @@ import ModulosRegistros from './pages/registros/modulosregistros/ModulosRegistro
 import RegistroInsumos from './pages/registros/registroinsumos/RegistroInsumos';
 import RegistroInventarios from './pages/registros/registroinventario/RegistroInventarios';
 import ImpresionMP from './pages/impresion/impresionmp/ImpresionMP';
+import ModulosEntradas from './pages/entradas/modulosentradas/ModulosEntradas';
+import EntradasPT from './pages/entradas/entradaspt/EntradasPT';
+import EntradasMP from './pages/entradas/entradasmp/EntradasMP';
+import ModulosImpresion_Quality from './pages/impresion/impresion produccion/modulosimpresion_quality/ModulosImpresion_quality';
+import EtiquetadoQuality_WandW from './pages/impresion/impresion produccion/etiquetadoWandW_produccion/EtiquetadoQuality_WandW';
+import ModulosAntenas from './pages/antenas/modulosantenas/ModulosAntenas';
+import ModulosConfiguracion from './pages/configuracion/modulosconfiguracion/ModulosConfiguracion';
+import ConfiguracionEmbarques from './pages/configuracion/configuracionEmbarques/ConfiguracionEmbarques';
 
 
 
-const Entradas = () => <div>Entradas</div>;
 const Salidas = () => <div>Salidas</div>;
 const Ubicacion = () => <div>Ubicación</div>;
-const Antenas = () => <div>Antenas</div>;
 const ReentarimadoDestiny = () => <div>Reentarimado Destiny</div>;
 const ReentarimadoQuality = () => <div>Reentarimado Quality</div>;
 const ReentarimadoVaso = () => <div>Reentarimado Vaso</div>;
@@ -55,17 +61,21 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Dashboard />} />
-            <Route path="/entradas" element={<Entradas />} />
+            <Route path="/ModulosEntradas" element={<ModulosEntradas />} />
+            <Route path="/EntradasPT" element={<EntradasPT />} />
+            <Route path="/EntradasMP" element={<EntradasMP />} />
             <Route path="/ImpresionMP" element={<ImpresionMP />} />
             <Route path="/salidas" element={<Salidas />} />
             <Route path="/ubicacion" element={<Ubicacion />} />
             <Route path="/consultas" element={<MoudulosConsultas />} />
-            <Route path="/consultaBFX" element={<ConsultaBFX />} />
-            <Route path="/consultaDestiny" element={<ConsultaDestiny />} />
-            <Route path="/consultaQuality" element={<ConsultaQuality />} />
-            <Route path="/consultaVaso" element={<ConsultaVaso />} />
+            <Route path="/ConsultaBFX" element={<ConsultaBFX />} />
+            <Route path="/ConsultaDestiny" element={<ConsultaDestiny />} />
+            <Route path="/ConsultaQuality" element={<ConsultaQuality />} />
+            <Route path="/ConsultaVaso" element={<ConsultaVaso />} />
             <Route path="/Reentarimado" element={<MoudulosReentarimado />} />
             <Route path="/ModulosImpresion" element={<ModulosImpresion />} />
+            <Route path="/ModulosImpresionQuality" element={<ModulosImpresion_Quality/>} />
+            <Route path="/ImpresionTarimaW&W" element={<EtiquetadoQuality_WandW/>} />
             <Route path="/reentarimadoBFX" element={<ReentarimadoBFX />} />
             <Route path="/reentarimadoDestiny" element={<ReentarimadoDestiny />} />
             <Route path="/reentarimadoQuality" element={<ReentarimadoQuality />} />
@@ -73,7 +83,6 @@ function App() {
             <Route path="/ModulosRegistros" element={<ModulosRegistros />} />
             <Route path="/Insumos" element={<RegistroInsumos/>} />
             <Route path="/Inventario" element={<RegistroInventarios/>} />
-            <Route path="/antenas" element={<Antenas />} />
             <Route path="/catalogos" element={<ModulosCatalogo />} />
             <Route path="/catalogoBioflex" element={<ProductoBioflex />} />
             <Route path="/catalogoDestiny" element={<ProductoDestiny />} />
@@ -89,6 +98,8 @@ function App() {
             <Route path="/ImpresionTarimaDestiny" element={<EtiquetadoDestiny_produccion />} />
             <Route path="/ImpresionTarimaQuality" element={<EtiquetadoQuality_produccion />} />
             <Route path="/ImpresionTarimaVaso" element={<EtiquetadoVaso_produccion />} />
+            <Route path="/configuracion" element={<ModulosConfiguracion />} />
+            <Route path='configuracion-antenas-embarques' element={<ConfiguracionEmbarques/>}/>
           </Routes>
         </div>
       </div>
