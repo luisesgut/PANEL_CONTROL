@@ -37,7 +37,7 @@ import ModulosEntradas from './pages/entradas/modulosentradas/ModulosEntradas';
 import EntradasPT from './pages/entradas/entradaspt/EntradasPT';
 import EntradasMP from './pages/entradas/entradasmp/EntradasMP';
 import ModulosImpresion_Quality from './pages/impresion/impresion produccion/modulosimpresion_quality/ModulosImpresion_quality';
-import EtiquetadoQuality_WandW from './pages/impresion/impresion produccion/etiquetadoWandW_produccion/EtiquetadoQuality_WandW';
+import EtiquetadoQuality_WandW from './pages/impresion/impresion produccion/etiquetadoWandW_produccion/Etiquetado_WandW.tsx';
 import ModulosAntenas from './pages/antenas/modulosantenas/ModulosAntenas';
 import ModulosConfiguracion from './pages/configuracion/modulosconfiguracion/ModulosConfiguracion';
 import ConfiguracionEmbarques from './pages/configuracion/configuracionEmbarques/ConfiguracionEmbarques';

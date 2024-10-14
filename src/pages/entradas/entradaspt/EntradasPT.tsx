@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, IconButton, Autocomplete } from '@mui/material';
+import { Box, TextField, Button, Typography, IconButton, Autocomplete, Modal } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { DataGrid, GridColDef } from '@mui/x-data-grid'; // Usamos solo DataGrid sin GridValueGetter
-import '../entradasmp/entradas.scss'; // Use the shared styles
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import '../entradasmp/entradas.scss';
 
 // Interfaz para las filas de la tabla
 interface EntradasPTRow {
@@ -13,10 +13,30 @@ interface EntradasPTRow {
   claveUnidad: string;
   piezas: number;
   pesoNeto: number;
+  trazabilidad: string;
+  orden: string;
+  ubicacion: string;
 }
 
+// Lista de ubicaciones
+const ubicaciones = [
+  "PT1-C01", "PT1-C02", "PT1-C03", "PT1-C04", "PT1-C05", "PT1-C06", "PT1-C07", "PT1-C08", "PT1-EMBARQUES",
+  "PT1-PASO1", "PT1-PASO4", "PT1-PASO5", "PT1-PASO6", "PT1-PASO8", "PT1-RAA-L1", "PT1-RB-L1", "PT1-RB-L2",
+  "PT1-RD-L1", "PT1-RD-L2", "PT1-RE-L1", "PT1-RE-L2", "PT1-REPROCESOS", "PT1-RF-L1", "PT1-RF-L2", "PT1-RG-L1",
+  "PT1-RG-L2", "PT1-RH-L1", "PT1-RH-L2", "PT1-RR-L1", "PT1-RR-L2", "PT1-RU-L1", "PT1-RU-L2", "PT1-RV-L1",
+  "PT1-RV-L2", "PT1-RZ-L1", "PT1-RZ-L2", "PT1-UBICACIÓN-DE-SISTEMA"
+];
+
+// Lista de personas para el Autocomplete
+const personas = [
+  "Juan Pérez",
+  "María López",
+  "Carlos Sánchez",
+  "Ana González"
+];
+
 const antennas = [
-  { id: 1, name: 'EntradaPT' }, // Actualiza los nombres según los que tienes en tu backend
+  { id: 1, name: 'EntradaPT' },
   { id: 2, name: 'Antenna 2' },
   { id: 3, name: 'Antenna 3' },
 ];
@@ -24,11 +44,14 @@ const antennas = [
 const EntradasPT: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAntenna, setSelectedAntenna] = useState<any>(null);
-  const [date, setDate] = useState('');
-  const [records, setRecords] = useState<EntradasPTRow[]>([]); // Usa la interfaz para tipar el estado
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [records, setRecords] = useState<EntradasPTRow[]>([]);
+  const [selectedRecords, setSelectedRecords] = useState<EntradasPTRow[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({ pageSize: 5, page: 0 });
 
-  // Función para mostrar "piezas" si la claveUnidad es "MIL", "H87", "XBX", o mostrar "pesoNeto" si no es alguna de esas.
   const formatConditionalValue = (claveUnidad: string, piezas: number, pesoNeto: number) => {
     if (['MIL', 'H87', 'XBX'].includes(claveUnidad)) {
       return piezas;
@@ -36,34 +59,26 @@ const EntradasPT: React.FC = () => {
     return pesoNeto;
   };
 
-  const columns: GridColDef[] = [
-    { field: 'claveProducto', headerName: 'Clave Producto', width: 150 },
-    { field: 'nombreProducto', headerName: 'Nombre Producto', width: 250 },
-    { field: 'claveUnidad', headerName: 'Clave Unidad', width: 150 },
-    { 
-      field: 'conditionalValue', 
-      headerName: 'Cantidad/Peso', 
-      width: 150,
-      // Renderizamos directamente el valor en lugar de usar valueGetter
-      renderCell: (params) => (
-        <span>
-          {formatConditionalValue(params.row.claveUnidad, params.row.piezas, params.row.pesoNeto)}
-        </span>
+  const handleUbicacionChange = (id: number, newUbicacion: string) => {
+    setRecords((prevRecords) =>
+      prevRecords.map((record) =>
+        record.id === id ? { ...record, ubicacion: newUbicacion } : record
       )
-    }
-  ];
+    );
+  };
 
   const handleLoadRecords = async () => {
-    if (!selectedAntenna || !date) {
-      console.log('Antena o fecha no seleccionada');
+    if (!selectedAntenna || !startDate || !endDate) {
+      console.log('Antena, fecha de inicio o fecha de fin no seleccionada');
       return;
     }
 
     try {
-      const response = await fetch(`http://http://172.16.10.31/api/ProdExtraInfo?fechaEntrada=${date}&antena=${selectedAntenna.name}`);
+      const response = await fetch(
+        `http://localhost:5000/api/ProdExtraInfo/FiltrarEntradasAlmacen?fechaInicio=${startDate}&fechaFin=${endDate}&antena=${selectedAntenna.name}`
+      );
       const data = await response.json();
 
-      // Mapea los datos recibidos al formato que necesita la tabla
       const formattedRecords = data.map((item: any): EntradasPTRow => ({
         id: item.prodExtraInfo.id,
         claveProducto: item.prodExtraInfo.prodEtiquetaRFID.claveProducto,
@@ -71,25 +86,65 @@ const EntradasPT: React.FC = () => {
         claveUnidad: item.claveUnidad,
         piezas: item.prodExtraInfo.prodEtiquetaRFID.piezas,
         pesoNeto: item.prodExtraInfo.prodEtiquetaRFID.pesoNeto,
+        orden: item.prodExtraInfo.prodEtiquetaRFID.orden,
+        trazabilidad: item.prodExtraInfo.prodEtiquetaRFID.trazabilidad,
+        ubicacion: "",
       }));
 
-      setRecords(formattedRecords); // Actualiza el estado de los registros con los datos formateados
+      setRecords(formattedRecords);
     } catch (error) {
       console.error('Error al cargar los registros:', error);
     }
   };
+
+
+  const handleOpenModal = () => {
+    const selectedRows = records.filter(record => record.ubicacion); // Filtra los registros con una ubicación seleccionada
+    setSelectedRecords(selectedRows);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const columns: GridColDef[] = [
+    { field: 'claveProducto', headerName: 'Clave Producto', width: 200 },
+    { field: 'nombreProducto', headerName: 'Nombre Producto', width: 450 },
+    { field: 'claveUnidad', headerName: 'Clave Unidad', width: 150 },
+    {
+      field: 'conditionalValue',
+      headerName: 'Cantidad/Peso',
+      width: 150,
+      renderCell: (params) => (
+        <span>
+          {formatConditionalValue(params.row.claveUnidad, params.row.piezas, params.row.pesoNeto)}
+        </span>
+      )
+    },
+    { field: 'orden', headerName: 'Orden', width: 150 },
+    { field: 'trazabilidad', headerName: 'Trazabilidad', width: 200 },
+    {
+      field: 'ubicacion',
+      headerName: 'Ubicación',
+      width: 300,
+      renderCell: (params) => (
+        <Autocomplete
+          options={ubicaciones}
+          value={params.row.ubicacion || ""}
+          onChange={(event, newValue) => handleUbicacionChange(params.row.id, newValue || "")}
+          renderInput={(params) => <TextField {...params} variant="standard" label="Selecciona Ubicación" />}
+        />
+      ),
+    },
+  ];
 
   return (
     <div className="entradas-container">
       <Box sx={{ width: '100%', p: 1, position: 'relative' }}>
         <IconButton
           onClick={() => navigate('/ModulosEntradas')}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            left: 8,
-            zIndex: 10
-          }}
+          sx={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}
         >
           <ArrowBackIcon sx={{ fontSize: 40, color: '#46707e' }} />
         </IconButton>
@@ -109,10 +164,18 @@ const EntradasPT: React.FC = () => {
           sx={{ width: '300px', mr: 2 }}
         />
         <TextField
-          label="Fecha"
+          label="Fecha Inicio"
           type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ width: '200px', mr: 2 }}
+        />
+        <TextField
+          label="Fecha Fin"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
           sx={{ width: '200px', mr: 2 }}
         />
@@ -135,11 +198,60 @@ const EntradasPT: React.FC = () => {
           rows={records}
           columns={columns}
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel} // Permite cambiar la paginación
-          pageSizeOptions={[5, 10, 15, 25]} // Múltiples opciones de tamaño de página
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[5, 10, 15, 25]}
           checkboxSelection
         />
       </Box>
+      <Box className="filter-box">
+        <Button
+          variant="contained"
+          onClick={handleOpenModal}
+          sx={{
+            backgroundColor: '#46707e',
+            color: 'white',
+            '&:hover': { backgroundColor: '#3b5c6b' },
+            height: '56px',
+            ml: 2
+          }}
+        >
+          Confirmar Selección
+        </Button>
+      </Box>
+
+      <Modal open={isModalOpen} onClose={handleCloseModal}>
+        <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, width: '80%', margin: 'auto', mt: 5 }}>
+          <Typography variant="h6" gutterBottom>
+            Confirmar Información para Subir a SAP
+          </Typography>
+          <Box className="data-grid-container" sx={{ mb: 3 }}>
+            <DataGrid
+              rows={selectedRecords}
+              columns={columns}
+              pageSizeOptions={[5, 10, 15, 25]}
+              autoHeight
+            />
+          </Box>
+          <Autocomplete
+            options={personas}
+            getOptionLabel={(option) => option}
+            onChange={(event, newValue) => setSelectedPerson(newValue || null)}
+            renderInput={(params) => <TextField {...params} label="Selecciona quién realiza la confirmación" fullWidth />}
+          />
+          <Button
+            variant="contained"
+            sx={{
+              mt: 2,
+              backgroundColor: '#46707e',
+              color: 'white',
+              '&:hover': { backgroundColor: '#3b5c6b' }
+            }}
+            onClick={() => console.log('Subir a SAP', selectedRecords, selectedPerson)}
+          >
+            Subir a SAP
+          </Button>
+        </Box>
+      </Modal>
     </div>
   );
 };

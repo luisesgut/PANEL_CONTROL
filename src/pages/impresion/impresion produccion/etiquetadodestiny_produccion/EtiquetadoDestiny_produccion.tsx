@@ -7,7 +7,6 @@ import axios from 'axios';
 import './etiquetadodestiny_produccion.scss';
 import { Autocomplete } from '@mui/material';
 import jsPDF from 'jspdf';
-import bwipjs from 'bwip-js';
 import Swal from 'sweetalert2';
 import { styled } from '@mui/material/styles';
 

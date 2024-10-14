@@ -12,6 +12,7 @@ import Swal from 'sweetalert2';
 import { styled } from '@mui/material/styles';
 import QRCode from "qrcode";
 import qualityImage from "../../../../assets/quality.png";
+
 interface Area {
   id: number;
   area: string;
@@ -174,33 +175,41 @@ const EtiquetadoQuality_produccion: React.FC = () => {
         const orden = response.data.find(orden => orden.id === selectedOrden);
         if (orden) {
           const productoConcatenado = `${orden.claveProducto} ${orden.producto}`;
-          setFilteredProductos(productoConcatenado); // Establece el producto concatenado
-          setUnidad(orden.unidad || "default_unit"); // Establece la unidad o una por defecto si no existe
+          setFilteredProductos(productoConcatenado); 
+          setUnidad(orden.unidad || "default_unit"); 
   
-          // Aplica la lógica para claveUnidad
           const validKeys = ["MIL", "XBX", "H87"];
           const nuevaClaveUnidadLocal = validKeys.includes(orden.claveUnidad) ? orden.claveUnidad : "Pzas";
           setClaveUnidad(nuevaClaveUnidadLocal);
   
-          // Filtra el texto para eliminar el código al inicio y "(QUALITY)" solo si están presentes
           let filteredItem = orden.producto;
-
-        // Elimina el código al inicio si comienza con "P" seguido de números
-        filteredItem = filteredItem.replace(/^P\d+\s*/, '');
-
-        // Elimina "(QUALITY)" si está presente
-        filteredItem = filteredItem.replace(/\(QUALITY\)/g, '');
-
-        // Elimina espacios en blanco al principio y al final
-        filteredItem = filteredItem.trim();
-
-        setItem(filteredItem);
+  
+          // Extract the QPS Item Number by matching "P" followed by numbers and/or letters
+          const extractedQPSItemNumber = filteredItem.match(/P\d+[A-Z]*\d*/)?.[0] || '';
+  
+          // Set the QPS Item Number
+          setQpsItemNumber(extractedQPSItemNumber);
+  
+          // Remove the QPS Item Number from the product string
+          filteredItem = filteredItem.replace(extractedQPSItemNumber, '').trim();
+  
+          // Remove "(QUALITY)" if present
+          filteredItem = filteredItem.replace(/\(QUALITY\)/g, '');
+  
+          setItem(filteredItem); // Set the cleaned product name
         }
       });
     }
   }, [selectedArea, selectedOrden]);
   
-
+  useEffect(() => {
+    Swal.fire({
+      icon: 'info',
+      title: 'Actualización',
+      text: 'A partir de ahora, ya se genera automáticamente el rótulo que se utiliza en PT y también las 4 hojas que pide el cliente que se coloquen en la tarima.',
+      confirmButtonText: 'Entendido'
+    });
+  }, []);
 
   useEffect(() => {
     const generateTraceabilityCode = () => {
@@ -376,8 +385,13 @@ const resetValores = () => {
   });
   
   const generatePDF = (data: EtiquetaData) => { //MODIFICAR ROTULO
-    const { claveProducto, nombreProducto, orden, fecha } = data;
-  
+    const { claveProducto, nombreProducto, pesoBruto, orden, fecha } = data;
+    
+    let piezasParaPDF = piezas; // Asumimos que `piezas` ya está definido en el estado
+    if (claveUnidad === "MIL") {
+      piezasParaPDF = piezasParaPDF ? piezasParaPDF / 1000 : 0;
+    }
+
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -409,7 +423,7 @@ const resetValores = () => {
 
     doc.setFontSize(80);
     doc.text(`${pesoNeto}`, 5, 207);
-    doc.text(`${piezas} ${claveUnidad}`, 122, 207);
+    doc.text(`${piezasParaPDF} ${claveUnidad}`, 122, 207);
 
     doc.setDrawColor(0);
     doc.setLineWidth(0.5);
@@ -420,6 +434,7 @@ const resetValores = () => {
     window.open(doc.output('bloburl'), '_blank');
   };
 
+  
   const generatePDFWithQr = async (data: EtiquetaData) => {
 
     const doc = new jsPDF({
@@ -492,7 +507,6 @@ const resetValores = () => {
 
     doc.save("etiqueta.pdf");
   };
-  
 
   const handleConfirmEtiqueta = () => {
     if (!selectedPrinter) {
