@@ -41,6 +41,7 @@ import EtiquetadoQuality_WandW from './pages/impresion/impresion produccion/etiq
 import ModulosAntenas from './pages/antenas/modulosantenas/ModulosAntenas';
 import ModulosConfiguracion from './pages/configuracion/modulosconfiguracion/ModulosConfiguracion';
 import ConfiguracionEmbarques from './pages/configuracion/configuracionEmbarques/ConfiguracionEmbarques';
+import ProductoProducido from './pages/registros/productoproducido/ProductoProducido';
 
 
 
@@ -81,6 +82,7 @@ function App() {
             <Route path="/reentarimadoQuality" element={<ReentarimadoQuality />} />
             <Route path="/reentarimadoVaso" element={<ReentarimadoVaso />} />
             <Route path="/ModulosRegistros" element={<ModulosRegistros />} />
+            <Route path="/Producido" element={<ProductoProducido/>} />
             <Route path="/Insumos" element={<RegistroInsumos/>} />
             <Route path="/Inventario" element={<RegistroInventarios/>} />
             <Route path="/catalogos" element={<ModulosCatalogo />} />

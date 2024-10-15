@@ -6,8 +6,10 @@ import CategoryIcon from '@mui/icons-material/Category';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import { Link } from 'react-router-dom';
 import './modulosregistros.scss';
+import FactoryIcon from '@mui/icons-material/Factory';
 
 const RegistroModules = [
+  { icon: <FactoryIcon sx={{ fontSize: 60 }} />, label: 'PRODUCIDO', path: '/Producido' },
   { icon: <InventoryIcon sx={{ fontSize: 60 }} />, label: 'INVENTARIO', path: '/Inventario' },
   { icon: <CategoryIcon sx={{ fontSize: 60 }} />, label: 'INSUMOS', path: '/Insumos' },
 ];

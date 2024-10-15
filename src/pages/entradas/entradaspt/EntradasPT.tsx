@@ -3,6 +3,7 @@ import { Box, TextField, Button, Typography, IconButton, Autocomplete, Modal } f
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import Swal from 'sweetalert2';
 import '../entradasmp/entradas.scss';
 
 // Interfaz para las filas de la tabla
@@ -75,7 +76,7 @@ const EntradasPT: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/ProdExtraInfo/FiltrarEntradasAlmacen?fechaInicio=${startDate}&fechaFin=${endDate}&antena=${selectedAntenna.name}`
+        `http://172.16.10.31/api/ProdExtraInfo/FiltrarEntradasAlmacen?fechaInicio=${startDate}&fechaFin=${endDate}&antena=${selectedAntenna.name}`
       );
       const data = await response.json();
 
@@ -138,6 +139,58 @@ const EntradasPT: React.FC = () => {
       ),
     },
   ];
+
+  const handleConfirmarSubidaSAP = async () => {
+    if (!selectedPerson) {
+      console.error('No se ha seleccionado a la persona para la confirmación');
+      return;
+    }
+    // Mostrar una alerta de confirmación antes de proceder
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: `¿Deseas confirmar la subida a SAP con el operador ${selectedPerson}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, confirmar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      // Si el usuario confirma, proceder con la subida a SAP
+      for (const record of selectedRecords) {
+        try {
+          const response = await fetch(
+            `http://172.16.10.31/api/StatusSAP/StatusByTrazabilidad/${record.trazabilidad}?operadorAltaSAP=${encodeURIComponent(selectedPerson)}&Ubicacion=${encodeURIComponent(record.ubicacion)}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ status: 3 }), // Enviamos el status como 3 (puedes ajustar según sea necesario)
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Error en la actualización de la trazabilidad: ${record.trazabilidad}`);
+          }
+
+          console.log(`Actualización exitosa para trazabilidad: ${record.trazabilidad}`);
+        } catch (error: any) {
+          console.error('Error al subir a SAP:', error);
+          Swal.fire('Error', `Error al actualizar la trazabilidad ${record.trazabilidad}: ${error.message}`, 'error');
+        }
+      }
+
+      // Mostrar una alerta de éxito cuando todos los registros han sido procesados
+      Swal.fire('Éxito', 'Todos los registros se han subido correctamente a SAP.', 'success');
+
+      // Después de procesar todos los registros, cerrar la modal
+      handleCloseModal();
+    } else {
+      // Si el usuario cancela, mostramos un mensaje de cancelación
+      Swal.fire('Cancelado', 'La subida a SAP ha sido cancelada.', 'info');
+    }
+  };
 
   return (
     <div className="entradas-container">
@@ -219,7 +272,7 @@ const EntradasPT: React.FC = () => {
         </Button>
       </Box>
 
-      <Modal open={isModalOpen} onClose={handleCloseModal}>
+      <Modal open={isModalOpen} onClose={handleCloseModal}  style={{ zIndex: 1050 }}>
         <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, width: '80%', margin: 'auto', mt: 5 }}>
           <Typography variant="h6" gutterBottom>
             Confirmar Información para Subir a SAP
@@ -246,7 +299,7 @@ const EntradasPT: React.FC = () => {
               color: 'white',
               '&:hover': { backgroundColor: '#3b5c6b' }
             }}
-            onClick={() => console.log('Subir a SAP', selectedRecords, selectedPerson)}
+            onClick={handleConfirmarSubidaSAP}
           >
             Subir a SAP
           </Button>
