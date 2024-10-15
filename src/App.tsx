@@ -42,6 +42,7 @@ import ModulosAntenas from './pages/antenas/modulosantenas/ModulosAntenas';
 import ModulosConfiguracion from './pages/configuracion/modulosconfiguracion/ModulosConfiguracion';
 import ConfiguracionEmbarques from './pages/configuracion/configuracionEmbarques/ConfiguracionEmbarques';
 import ProductoProducido from './pages/registros/productoproducido/ProductoProducido';
+import ConfiguracionAlmacen from './pages/configuracion/configuracionAlmacen/ConfiguracionAlmacen';
 
 
 
@@ -102,6 +103,8 @@ function App() {
             <Route path="/ImpresionTarimaVaso" element={<EtiquetadoVaso_produccion />} />
             <Route path="/configuracion" element={<ModulosConfiguracion />} />
             <Route path='configuracion-antenas-embarques' element={<ConfiguracionEmbarques/>}/>
+            <Route path='configuracion-antenas-almacen' element={<ConfiguracionAlmacen/>}/>
+
           </Routes>
         </div>
       </div>
